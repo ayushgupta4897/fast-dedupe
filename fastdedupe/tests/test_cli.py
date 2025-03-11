@@ -8,7 +8,7 @@ import json
 import os
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from fastdedupe import cli
 
@@ -16,7 +16,7 @@ from fastdedupe import cli
 class TestCLI(unittest.TestCase):
     """Test cases for the CLI interface."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up temporary files for testing."""
         # Create temporary directory
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -50,11 +50,11 @@ class TestCLI(unittest.TestCase):
         self.output_file = os.path.join(self.temp_dir.name, "output.txt")
         self.duplicates_file = os.path.join(self.temp_dir.name, "duplicates.json")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         """Clean up temporary files."""
         self.temp_dir.cleanup()
 
-    def test_read_input_data_txt(self):
+    def test_read_input_data_txt(self) -> None:
         """Test reading input data from a text file."""
         data = cli.read_input_data(self.txt_file, "txt", 0, "text")
         self.assertEqual(len(data), 4)
@@ -63,7 +63,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(data[2], "Samsung Galaxy")
         self.assertEqual(data[3], "Samsng Galaxy")
 
-    def test_read_input_data_csv(self):
+    def test_read_input_data_csv(self) -> None:
         """Test reading input data from a CSV file."""
         # Test with column index
         data = cli.read_input_data(self.csv_file, "csv", 0, "text")
@@ -81,7 +81,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(data[2], "Samsung Galaxy")
         self.assertEqual(data[3], "Samsng Galaxy")
 
-    def test_read_input_data_json(self):
+    def test_read_input_data_json(self) -> None:
         """Test reading input data from a JSON file."""
         data = cli.read_input_data(self.json_file, "json", 0, "text")
         self.assertEqual(len(data), 4)
@@ -90,7 +90,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(data[2], "Samsung Galaxy")
         self.assertEqual(data[3], "Samsng Galaxy")
 
-    def test_write_output_data(self):
+    def test_write_output_data(self) -> None:
         """Test writing output data to a file."""
         data = ["Apple iPhone 12", "Samsung Galaxy"]
         cli.write_output_data(self.output_file, data)
@@ -101,7 +101,7 @@ class TestCLI(unittest.TestCase):
             self.assertEqual(lines[0].strip(), "Apple iPhone 12")
             self.assertEqual(lines[1].strip(), "Samsung Galaxy")
 
-    def test_write_duplicates(self):
+    def test_write_duplicates(self) -> None:
         """Test writing duplicates to a file."""
         duplicates = {
             "Apple iPhone 12": ["Apple iPhone12"],
@@ -116,7 +116,7 @@ class TestCLI(unittest.TestCase):
             self.assertEqual(data["Samsung Galaxy"], ["Samsng Galaxy"])
 
     @patch("sys.argv", ["fastdedupe", "input.txt"])
-    def test_parse_args_defaults(self):
+    def test_parse_args_defaults(self) -> None:
         """Test parsing command-line arguments with defaults."""
         with patch("argparse.ArgumentParser.parse_args") as mock_parse_args:
             cli.parse_args()
@@ -127,11 +127,14 @@ class TestCLI(unittest.TestCase):
     @patch("fastdedupe.cli.write_output_data")
     @patch("fastdedupe.cli.write_duplicates")
     @patch("fastdedupe.cli.parse_args")
-    def test_main(self, mock_parse_args, mock_write_duplicates, 
-                 mock_write_output, mock_read_input, mock_dedupe):
+    def test_main(self, mock_parse_args: MagicMock, 
+                 mock_write_duplicates: MagicMock, 
+                 mock_write_output: MagicMock, 
+                 mock_read_input: MagicMock, 
+                 mock_dedupe: MagicMock) -> None:
         """Test the main function."""
         # Mock the parsed arguments
-        mock_args = unittest.mock.MagicMock()
+        mock_args = MagicMock()
         mock_args.input_file = self.txt_file
         mock_args.output = self.output_file
         mock_args.duplicates = self.duplicates_file

@@ -13,34 +13,34 @@ from fastdedupe.core import _dedupe_exact
 class TestDedupe(unittest.TestCase):
     """Test cases for the dedupe function."""
 
-    def test_empty_list(self):
+    def test_empty_list(self) -> None:
         """Test deduplication of an empty list."""
         clean, dupes = dedupe([])
         self.assertEqual(clean, [])
         self.assertEqual(dupes, {})
 
-    def test_single_item(self):
+    def test_single_item(self) -> None:
         """Test deduplication of a list with a single item."""
         data = ["Apple"]
         clean, dupes = dedupe(data)
         self.assertEqual(clean, ["Apple"])
         self.assertEqual(dupes, {})
 
-    def test_no_duplicates(self):
+    def test_no_duplicates(self) -> None:
         """Test deduplication of a list with no duplicates."""
         data = ["Apple", "Banana", "Cherry"]
         clean, dupes = dedupe(data)
         self.assertEqual(clean, data)
         self.assertEqual(dupes, {})
 
-    def test_exact_duplicates(self):
+    def test_exact_duplicates(self) -> None:
         """Test deduplication of a list with exact duplicates."""
         data = ["Apple", "Apple", "Banana", "Cherry", "Cherry"]
         clean, dupes = dedupe(data)
         self.assertEqual(clean, ["Apple", "Banana", "Cherry"])
         self.assertEqual(dupes, {"Apple": ["Apple"], "Cherry": ["Cherry"]})
 
-    def test_fuzzy_duplicates(self):
+    def test_fuzzy_duplicates(self) -> None:
         """Test deduplication of a list with fuzzy duplicates."""
         data = ["Apple iPhone 12", "Apple iPhone12", "Samsung Galaxy", "Samsng Galaxy"]
         clean, dupes = dedupe(data)
@@ -50,7 +50,7 @@ class TestDedupe(unittest.TestCase):
             "Samsung Galaxy": ["Samsng Galaxy"]
         })
 
-    def test_case_sensitivity(self):
+    def test_case_sensitivity(self) -> None:
         """Test deduplication with case differences."""
         data = ["Apple", "apple", "APPLE", "Banana"]
         clean, dupes = dedupe(data, threshold=85)
@@ -60,7 +60,7 @@ class TestDedupe(unittest.TestCase):
         self.assertTrue("Apple" in clean or "apple" in clean or "APPLE" in clean)
         self.assertTrue("Banana" in clean)
 
-    def test_threshold_100(self):
+    def test_threshold_100(self) -> None:
         """Test deduplication with threshold=100 (exact matches only)."""
         data = ["Apple", "apple", "Apple iPhone", "Apple iPhone12"]
         clean, dupes = dedupe(data, threshold=100)
@@ -72,7 +72,7 @@ class TestDedupe(unittest.TestCase):
         self.assertTrue("Apple iPhone12" in clean)
         self.assertEqual(dupes, {})  # No duplicates with exact matching
 
-    def test_threshold_0(self):
+    def test_threshold_0(self) -> None:
         """Test deduplication with threshold=0 (everything matches)."""
         data = ["Apple", "Banana", "Cherry"]
         clean, dupes = dedupe(data, threshold=0)
@@ -80,27 +80,27 @@ class TestDedupe(unittest.TestCase):
         self.assertEqual(clean, ["Apple"])
         self.assertEqual(dupes, {"Apple": ["Banana", "Cherry"]})
 
-    def test_keep_first_true(self):
+    def test_keep_first_true(self) -> None:
         """Test deduplication with keep_first=True."""
         data = ["short", "very long string", "another"]
         clean, dupes = dedupe(data, threshold=50, keep_first=True)
         # With keep_first=True, the first occurrence should be kept
         self.assertTrue("short" in clean)
 
-    def test_keep_first_false(self):
+    def test_keep_first_false(self) -> None:
         """Test deduplication with keep_first=False."""
         data = ["short", "very long string", "another"]
         clean, dupes = dedupe(data, threshold=50, keep_first=False)
         # With keep_first=False, the longest string should be kept
         self.assertTrue("very long string" in clean)
 
-    def test_invalid_threshold_type(self):
+    def test_invalid_threshold_type(self) -> None:
         """Test deduplication with invalid threshold type."""
         data = ["Apple", "Banana"]
         with self.assertRaises(ValueError):
             dedupe(data, threshold="85")
 
-    def test_invalid_threshold_value(self):
+    def test_invalid_threshold_value(self) -> None:
         """Test deduplication with invalid threshold value."""
         data = ["Apple", "Banana"]
         with self.assertRaises(ValueError):
@@ -108,13 +108,13 @@ class TestDedupe(unittest.TestCase):
         with self.assertRaises(ValueError):
             dedupe(data, threshold=-1)
 
-    def test_invalid_keep_first_type(self):
+    def test_invalid_keep_first_type(self) -> None:
         """Test deduplication with invalid keep_first type."""
         data = ["Apple", "Banana"]
         with self.assertRaises(ValueError):
             dedupe(data, keep_first="True")
 
-    def test_real_world_example(self):
+    def test_real_world_example(self) -> None:
         """Test deduplication with a real-world example."""
         data = [
             "Flipkart India", 
@@ -137,7 +137,7 @@ class TestDedupe(unittest.TestCase):
         self.assertTrue("Google LLC" in dupes.get("Google LLC", []))
         self.assertTrue("Meta Inc" in dupes.get("Meta Inc.", []) or "Meta Inc." in dupes.get("Meta Inc", []))
 
-    def test_dedupe_exact_keep_first_false(self):
+    def test_dedupe_exact_keep_first_false(self) -> None:
         """Test _dedupe_exact with keep_first=False."""
         data = ["short", "very long string", "short"]
         clean, dupes = _dedupe_exact(data, keep_first=False)

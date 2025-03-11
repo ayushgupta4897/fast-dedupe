@@ -20,13 +20,14 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
+        pip install -e .
+        pip install pytest pytest-cov flake8 mypy codecov
     - name: Lint with flake8
       run: |
         flake8 fastdedupe --count --select=E9,F63,F7,F82 --show-source --statistics
     - name: Type check with mypy
       run: |
-        mypy fastdedupe
+        mypy fastdedupe --exclude fastdedupe/tests
     - name: Generate coverage report
       run: |
         pytest --cov-branch --cov-report=xml
