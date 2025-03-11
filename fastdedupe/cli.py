@@ -9,7 +9,7 @@ import argparse
 import csv
 import json
 import sys
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union, cast, TypeVar, Iterator
 
 from .core import dedupe
 
@@ -52,7 +52,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--csv-column", 
         help="Column name/index to deduplicate in CSV (default: 0)",
-        default=0
+        default=0,
+        type=lambda x: int(x) if x.isdigit() else x
     )
     parser.add_argument(
         "--json-key", 
@@ -78,7 +79,7 @@ def parse_args() -> argparse.Namespace:
 def read_input_data(
     input_file: str, 
     file_format: str, 
-    csv_column: Any, 
+    csv_column: Union[str, int], 
     json_key: str
 ) -> List[str]:
     """
@@ -100,31 +101,61 @@ def read_input_data(
                 return [line.strip() for line in f if line.strip()]
             elif file_format == "csv":
                 # Read CSV file
-                reader = csv.DictReader(f) if isinstance(csv_column, str) else csv.reader(f)
                 data = []
-                for row in reader:
-                    if isinstance(csv_column, str):
-                        # Use column name
-                        if csv_column in row:
-                            data.append(row[csv_column])
-                    else:
-                        # Use column index
-                        if len(row) > csv_column:
-                            data.append(row[csv_column])
+                # First, read the entire file content
+                csv_content = list(csv.reader(f))
+                
+                # If csv_column is a string (column name), find its index
+                if isinstance(csv_column, str):
+                    if not csv_content:
+                        return []
+                    
+                    # Get header row
+                    header = csv_content[0]
+                    
+                    # Find column index
+                    try:
+                        col_idx = header.index(csv_column)
+                    except ValueError:
+                        print(f"Column '{csv_column}' not found in CSV header", file=sys.stderr)
+                        return []
+                    
+                    # Extract data from that column (skip header)
+                    for row in csv_content[1:]:
+                        if len(row) > col_idx:
+                            data.append(row[col_idx])
+                else:
+                    # Use column index directly
+                    col_idx = int(csv_column)
+                    
+                    # Skip header if present
+                    start_idx = 1 if csv_content else 0
+                    
+                    # Extract data from that column
+                    for row in csv_content[start_idx:]:
+                        if len(row) > col_idx:
+                            data.append(row[col_idx])
+                
                 return data
             elif file_format == "json":
                 # Read JSON file
                 json_data = json.load(f)
                 if isinstance(json_data, list):
                     # List of objects
-                    return [item[json_key] for item in json_data if json_key in item]
+                    return [str(item[json_key]) for item in json_data if json_key in item]
                 elif isinstance(json_data, dict):
                     # Dictionary
                     if json_key in json_data:
-                        return json_data[json_key]
+                        json_value = json_data[json_key]
+                        if isinstance(json_value, list):
+                            return [str(item) for item in json_value]
+                        else:
+                            return [str(json_value)]
                     else:
-                        return list(json_data.values())
+                        return [str(value) for value in json_data.values()]
                 return []
+        # Add explicit return for mypy
+        return []
     except Exception as e:
         print(f"Error reading input file: {e}", file=sys.stderr)
         sys.exit(1)
