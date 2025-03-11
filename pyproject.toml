@@ -1,3 +1,13 @@
+[project]
+name = "fast-dedupe"
+version = "0.1.0"
+description = "A minimalist but optimized Python package for deduplication tasks leveraging RapidFuzz internally, enabling super-fast approximate duplicate detection within a dataset with minimal config."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "rapidfuzz>=2.0.0,<3.0.0"
+]
+
 [build-system]
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"

@@ -10,7 +10,7 @@ import os
 import time
 import random
 import string
-from typing import List, Tuple
+from typing import List
 
 # Add the parent directory to the path so we can import fastdedupe
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

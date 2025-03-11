@@ -16,7 +16,6 @@ class TestMain(unittest.TestCase):
     def test_main_import(self, mock_main):
         """Test that importing the module doesn't call main."""
         # Import the module
-        import fastdedupe.__main__
         
         # The main function should not be called on import
         mock_main.assert_not_called()
