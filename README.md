@@ -4,7 +4,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/fast-dedupe.svg)](https://pypi.org/project/fast-dedupe/)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/username/fast-dedupe/tests.yml?branch=main)](https://github.com/username/fast-dedupe/actions)
 [![codecov](https://codecov.io/gh/ayushgupta4897/fast-dedupe/graph/badge.svg?token=8V1NG5QKX6)](https://codecov.io/gh/ayushgupta4897/fast-dedupe)
-[![License](https://img.shields.io/github/license/username/fast-dedupe.svg)](https://github.com/username/fast-dedupe/blob/main/LICENSE)
+[![MIT License](https://img.shields.io/github/license/username/fast-dedupe.svg)](https://github.com/username/fast-dedupe/blob/main/LICENSE)
 
 **Fast, Minimalist Text Deduplication Library for Python**
 
@@ -140,27 +140,6 @@ fastdedupe data.csv -f csv --csv-column name
 fastdedupe data.json -f json --json-key text
 ```
 
-## 📊 Performance Benchmarks
-
-fast-dedupe is designed for speed and efficiency. Here are some benchmark results:
-
-| Dataset Size | Threshold | Variation Level | Time (s) | Unique Items | Duplicates |
-|--------------|-----------|-----------------|----------|--------------|------------|
-| 100          | 85        | 2 (minor typos) | 0.015    | 63           | 37         |
-| 500          | 85        | 2 (minor typos) | 0.234    | 250          | 250        |
-| 1000         | 85        | 2 (minor typos) | 0.885    | 404          | 596        |
-| 5000         | 85        | 2 (minor typos) | 11.840   | 1329         | 3671       |
-
-*Benchmarks run on MacBook Pro M1, Python 3.13.2*
-
-### Threshold Impact
-
-The similarity threshold significantly affects both performance and results:
-
-- **Lower threshold (70)**: More aggressive deduplication, faster processing
-- **Medium threshold (85)**: Balanced approach, recommended for most cases
-- **Higher threshold (95)**: More conservative, only very similar items matched
-
 ## 👥 Target Audience
 
 - **Data Engineers / Analysts:** Cleaning large datasets before ETL, BI tasks, and dashboards
@@ -179,10 +158,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 5. Open a Pull Request
 
 For more details, see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Performance
 
@@ -297,3 +272,7 @@ python benchmarks/benchmark.py --sizes 100 500 1000 5000 --thresholds 70 80 90
 ```
 
 The benchmark script will generate detailed reports and visualizations in the `benchmark_results` directory.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
