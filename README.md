@@ -3,7 +3,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/fast-dedupe.svg)](https://pypi.org/project/fast-dedupe/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/fast-dedupe.svg)](https://pypi.org/project/fast-dedupe/)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/username/fast-dedupe/tests.yml?branch=main)](https://github.com/username/fast-dedupe/actions)
-[![codecov](https://codecov.io/gh/username/fast-dedupe/graph/badge.svg?token=68fc7bac-ce4c-4fe4-aaed-23c580a8b46c)](https://codecov.io/gh/username/fast-dedupe)
+[![codecov](https://codecov.io/gh/ayushgupta4897/fast-dedupe/graph/badge.svg?token=8V1NG5QKX6)](https://codecov.io/gh/ayushgupta4897/fast-dedupe)
 [![License](https://img.shields.io/github/license/username/fast-dedupe.svg)](https://github.com/username/fast-dedupe/blob/main/LICENSE)
 
 **Fast, Minimalist Text Deduplication Library for Python**
