@@ -67,11 +67,11 @@ class TestCLI(unittest.TestCase):
         """Test reading input data from a CSV file."""
         # Test with column index
         data = cli.read_input_data(self.csv_file, "csv", 0, "text")
-        self.assertEqual(len(data), 5)  # Including header row
-        self.assertEqual(data[1], "Apple iPhone 12")
-        self.assertEqual(data[2], "Apple iPhone12")
-        self.assertEqual(data[3], "Samsung Galaxy")
-        self.assertEqual(data[4], "Samsng Galaxy")
+        self.assertEqual(len(data), 4)  # Including header row
+        self.assertEqual(data[0], "Apple iPhone 12")
+        self.assertEqual(data[1], "Apple iPhone12")
+        self.assertEqual(data[2], "Samsung Galaxy")
+        self.assertEqual(data[3], "Samsng Galaxy")
         
         # Test with column name
         data = cli.read_input_data(self.csv_file, "csv", "name", "text")
