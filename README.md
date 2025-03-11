@@ -247,11 +247,11 @@ We've benchmarked fast-dedupe against other popular libraries for string dedupli
 
 The benchmarks were run on various dataset sizes and similarity thresholds. Here's a summary of the results:
 
-![Benchmark Summary](https://raw.githubusercontent.com/username/fast-dedupe/main/benchmarks/benchmark_results/summary_time_vs_size.png)
+![Performance Benchmark Comparison](https://i.postimg.cc/jjF1Kcng/output.png)
 
 #### Performance Comparison
 
-| Dataset Size | fast-dedupe (s) | pandas (s) | fuzzywuzzy (s) | Speedup vs pandas | Speedup vs fuzzywuzzy |
+| Dataset Size | fast-dedupe (s) | pandas (s) | fuzzywuzzy (s) | fast-dedupe vs pandas | fast-dedupe vs fuzzywuzzy |
 |--------------|-----------------|------------|----------------|-------------------|----------------------|
 | 1,000        | 0.0521          | 0.3245     | 0.4872         | 6.23x             | 9.35x                |
 | 5,000        | 0.2873          | 2.8541     | 3.9872         | 9.93x             | 13.88x               |
