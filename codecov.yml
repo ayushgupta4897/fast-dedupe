@@ -16,6 +16,14 @@ coverage:
       default:
         target: auto
         threshold: 10%
+  ignore:
+    - "tests/**/*"
+    - "benchmarks/**/*"
+    - "setup.py"
+    - "docs/**/*"
+    - "examples/**/*"
+    - "**/conftest.py"
+    - "**/__init__.py"
 
 parsers:
   gcov:
