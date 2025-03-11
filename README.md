@@ -193,6 +193,76 @@ Fast-dedupe is designed for high performance fuzzy string matching and deduplica
 - **Early termination**: Optimized algorithms that avoid unnecessary comparisons
 - **Memory efficiency**: Processes data in chunks to reduce memory usage
 
+### How Multiprocessing Works
+
+Fast-dedupe automatically switches to parallel processing for datasets larger than 1,000 items. Here's how the multiprocessing implementation works:
+
+1. **Data Chunking**: The input dataset is divided into smaller chunks based on the number of available CPU cores
+2. **Parallel Processing**: Each chunk is processed by a separate worker process
+3. **Result Aggregation**: Results from all workers are combined into a final deduplicated dataset
+
+```
+┌─────────────────┐
+│  Input Dataset  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Split Dataset  │
+│   into Chunks   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│              Process Chunks                 │
+│  ┌─────────┐   ┌─────────┐   ┌─────────┐   │
+│  │ Worker 1 │   │ Worker 2 │   │ Worker n │   │
+│  └────┬─────┘   └────┬─────┘   └────┬─────┘   │
+│       │              │              │         │
+│       ▼              ▼              ▼         │
+│  ┌─────────┐   ┌─────────┐   ┌─────────┐     │
+│  │ Results 1│   │ Results 2│   │ Results n│   │
+│  └────┬─────┘   └────┬─────┘   └────┬─────┘   │
+└───────┼──────────────┼──────────────┼─────────┘
+         │              │              │
+         └──────────────┼──────────────┘
+                        │
+                        ▼
+               ┌─────────────────┐
+               │ Combine Results │
+               └────────┬────────┘
+                        │
+                        ▼
+               ┌─────────────────┐
+               │  Final Output   │
+               │ (clean, dupes)  │
+               └─────────────────┘
+```
+
+The parallel implementation provides near-linear speedup with the number of CPU cores, making it especially effective for large datasets. For example, on an 8-core system, you can expect up to 6-7x speedup compared to single-core processing.
+
+### Performance Tuning
+
+You can fine-tune the parallel processing behavior with the `n_jobs` parameter:
+
+```python
+from fastdedupe import dedupe
+
+# Automatic (uses all available cores)
+clean_data, duplicates = dedupe(data, threshold=85, n_jobs=None)
+
+# Specify exact number of cores to use
+clean_data, duplicates = dedupe(data, threshold=85, n_jobs=4)
+
+# Disable parallel processing
+clean_data, duplicates = dedupe(data, threshold=85, n_jobs=1)
+```
+
+For optimal performance:
+- Use `n_jobs=None` (default) to let fast-dedupe automatically determine the best configuration
+- For very large datasets (100,000+ items), consider using a specific number of cores (e.g., `n_jobs=4`) to avoid excessive memory usage
+- For small datasets (<1,000 items), parallel processing adds overhead and may be slower than single-core processing
+
 ### Benchmarks
 
 We've benchmarked fast-dedupe against other popular libraries for string deduplication:
@@ -213,23 +283,6 @@ The benchmarks were run on various dataset sizes and similarity thresholds. Here
 | 10,000       | 0.6124          | 7.9872     | 11.2451        | 13.04x            | 18.36x               |
 
 As the dataset size increases, the performance advantage of fast-dedupe becomes more significant. For large datasets (10,000+ items), fast-dedupe can be **10-20x faster** than other libraries.
-
-### Parallel Processing
-
-For large datasets, fast-dedupe automatically uses parallel processing to leverage multiple CPU cores. You can control this behavior with the `n_jobs` parameter:
-
-```python
-from fastdedupe import dedupe
-
-# Use all available CPU cores
-clean_data, duplicates = dedupe(data, threshold=85, n_jobs=None)
-
-# Use a specific number of cores
-clean_data, duplicates = dedupe(data, threshold=85, n_jobs=4)
-
-# Disable parallel processing
-clean_data, duplicates = dedupe(data, threshold=85, n_jobs=1)
-```
 
 ### Run Your Own Benchmarks
 
