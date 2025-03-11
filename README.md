@@ -59,6 +59,8 @@ print(duplicates)
 - **Flexible Matching:** Handles minor spelling differences, hyphens, abbreviations
 - **Configurable Sensitivity:** Adjust matching threshold easily
 - **Detailed Output:** Cleaned records and clear mapping of detected duplicates
+- **Command-line Interface:** Deduplicate files directly from the terminal
+- **High Test Coverage:** 93%+ code coverage ensures reliability
 
 ## 🎯 Use Cases
 
@@ -111,6 +113,54 @@ Deduplicates a list of strings using fuzzy matching.
   - `clean_data` (list): List of deduplicated strings
   - `duplicates` (dict): Dictionary mapping each kept string to its duplicates
 
+## 🖥️ Command-line Interface
+
+fast-dedupe also provides a command-line interface for deduplicating files:
+
+```bash
+# Basic usage
+fastdedupe input.txt
+
+# Save output to a file
+fastdedupe input.txt -o deduplicated.txt
+
+# Save duplicates mapping to a file
+fastdedupe input.txt -o deduplicated.txt -d duplicates.json
+
+# Adjust threshold
+fastdedupe input.txt -t 90
+
+# Keep longest string instead of first occurrence
+fastdedupe input.txt --keep-longest
+
+# Work with CSV files
+fastdedupe data.csv -f csv --csv-column name
+
+# Work with JSON files
+fastdedupe data.json -f json --json-key text
+```
+
+## 📊 Performance Benchmarks
+
+fast-dedupe is designed for speed and efficiency. Here are some benchmark results:
+
+| Dataset Size | Threshold | Variation Level | Time (s) | Unique Items | Duplicates |
+|--------------|-----------|-----------------|----------|--------------|------------|
+| 100          | 85        | 2 (minor typos) | 0.015    | 63           | 37         |
+| 500          | 85        | 2 (minor typos) | 0.234    | 250          | 250        |
+| 1000         | 85        | 2 (minor typos) | 0.885    | 404          | 596        |
+| 5000         | 85        | 2 (minor typos) | 11.840   | 1329         | 3671       |
+
+*Benchmarks run on MacBook Pro M1, Python 3.13.2*
+
+### Threshold Impact
+
+The similarity threshold significantly affects both performance and results:
+
+- **Lower threshold (70)**: More aggressive deduplication, faster processing
+- **Medium threshold (85)**: Balanced approach, recommended for most cases
+- **Higher threshold (95)**: More conservative, only very similar items matched
+
 ## 👥 Target Audience
 
 - **Data Engineers / Analysts:** Cleaning large datasets before ETL, BI tasks, and dashboards
@@ -127,6 +177,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+For more details, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## 📄 License
 

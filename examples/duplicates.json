@@ -1,0 +1,26 @@
+{
+  "Apple iPhone 12": [
+    "Apple iPhone12",
+    "Apple iPhone 12 Pro"
+  ],
+  "Samsung Galaxy S24": [
+    "Samsung Galaxy-S24",
+    "Samsng Galaxy S24"
+  ],
+  "Google Pixel 8": [
+    "Google Pixel8"
+  ],
+  "MacBook Pro 16\"": [
+    "Macbook-Pro 16\"",
+    "MacBook Pro 14\""
+  ],
+  "Dell XPS 13": [
+    "Dell XPS13"
+  ],
+  "Microsoft Surface Pro": [
+    "Microsoft Surface-Pro"
+  ],
+  "Nintendo Switch": [
+    "Nintendo Switch OLED"
+  ]
+}

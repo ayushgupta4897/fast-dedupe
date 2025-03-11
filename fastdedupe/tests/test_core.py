@@ -7,6 +7,7 @@ ensuring it works correctly with various inputs and edge cases.
 
 import unittest
 from fastdedupe import dedupe
+from fastdedupe.core import _dedupe_exact
 
 
 class TestDedupe(unittest.TestCase):
@@ -135,6 +136,16 @@ class TestDedupe(unittest.TestCase):
         self.assertTrue("Amaz0n" in dupes.get("Amazon", []))
         self.assertTrue("Google LLC" in dupes.get("Google LLC", []))
         self.assertTrue("Meta Inc" in dupes.get("Meta Inc.", []) or "Meta Inc." in dupes.get("Meta Inc", []))
+
+    def test_dedupe_exact_keep_first_false(self):
+        """Test _dedupe_exact with keep_first=False."""
+        data = ["short", "very long string", "short"]
+        clean, dupes = _dedupe_exact(data, keep_first=False)
+        # With keep_first=False, the function should still work but ignore the parameter
+        self.assertEqual(len(clean), 2)
+        self.assertTrue("short" in clean)
+        self.assertTrue("very long string" in clean)
+        self.assertEqual(dupes, {"short": ["short"]})
 
 
 if __name__ == "__main__":
