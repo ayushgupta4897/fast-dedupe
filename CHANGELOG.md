@@ -13,4 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command-line interface for deduplicating files
 - Support for different file formats (TXT, CSV, JSON)
 - Comprehensive test suite with 93%+ code coverage
-- Documentation and examples 
+- Documentation and examples
+
+### Requirements
+- Python 3.8 or higher
+- RapidFuzz 2.0.0 or higher 
