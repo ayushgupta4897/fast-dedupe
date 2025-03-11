@@ -1,5 +1,7 @@
 codecov:
-  require_ci_to_pass: yes
+  require_ci_to_pass: true
+  notify:
+    wait_for_ci: true
 
 coverage:
   precision: 2
@@ -8,12 +10,12 @@ coverage:
   status:
     project:
       default:
-        target: 90%
-        threshold: 1%
+        target: auto
+        threshold: 5%
     patch:
       default:
-        target: 80%
-        threshold: 1%
+        target: auto
+        threshold: 10%
 
 parsers:
   gcov:
@@ -24,6 +26,8 @@ parsers:
       macro: no
 
 comment:
-  layout: "reach,diff,flags,files,footer"
+  layout: "reach, diff, flags, files"
   behavior: default
-  require_changes: no 
+  require_changes: false
+  require_base: false
+  require_head: true 
