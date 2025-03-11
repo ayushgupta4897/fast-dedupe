@@ -5,7 +5,7 @@ This module contains the main deduplication function that leverages RapidFuzz
 for high-performance fuzzy string matching.
 """
 
-from typing import Dict, List, Tuple, Union, Set, Optional
+from typing import Dict, List, Tuple, Set, Optional
 from rapidfuzz import process, fuzz
 import multiprocessing
 from functools import partial

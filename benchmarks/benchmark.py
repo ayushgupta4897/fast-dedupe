@@ -10,9 +10,8 @@ import time
 import random
 import string
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-from typing import List, Dict, Tuple, Callable, Any
+from typing import List, Dict, Tuple
 import argparse
 import os
 import json
@@ -21,7 +20,6 @@ from tqdm import tqdm
 # Import the libraries to benchmark
 from fastdedupe import dedupe
 from fuzzywuzzy import process as fuzzywuzzy_process
-from rapidfuzz import process as rapidfuzz_process
 
 
 def generate_dataset(
@@ -440,7 +438,7 @@ def main():
     
     args = parser.parse_args()
     
-    print(f"Running benchmarks with the following parameters:")
+    print("Running benchmarks with the following parameters:")
     print(f"  Dataset sizes: {args.sizes}")
     print(f"  Thresholds: {args.thresholds}")
     print(f"  Duplicate ratio: {args.duplicate_ratio}")

@@ -9,7 +9,7 @@ import argparse
 import csv
 import json
 import sys
-from typing import List, Dict, Any, Optional, Union, cast, TypeVar, Iterator
+from typing import List, Dict, Optional, Union
 
 from .core import dedupe
 
