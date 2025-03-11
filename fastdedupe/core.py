@@ -5,14 +5,17 @@ This module contains the main deduplication function that leverages RapidFuzz
 for high-performance fuzzy string matching.
 """
 
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Set, Optional
 from rapidfuzz import process, fuzz
+import multiprocessing
+from functools import partial
 
 
 def dedupe(
     data: List[str], 
     threshold: int = 85, 
-    keep_first: bool = True
+    keep_first: bool = True,
+    n_jobs: Optional[int] = None
 ) -> Tuple[List[str], Dict[str, List[str]]]:
     """
     Deduplicate a list of strings using fuzzy matching.
@@ -28,6 +31,9 @@ def dedupe(
             Default is 85.
         keep_first (bool, optional): If True, keeps the first occurrence of a
             duplicate. If False, keeps the longest string. Default is True.
+        n_jobs (int, optional): Number of parallel jobs to run. If None, uses
+            all available CPU cores. If 1, runs in single-process mode.
+            Default is None.
     
     Returns:
         Tuple[List[str], Dict[str, List[str]]]: A tuple containing:
@@ -56,61 +62,149 @@ def dedupe(
     if threshold == 100:
         return _dedupe_exact(data, keep_first)
     
-    # Create a copy of the input data to avoid modifying the original
-    data_copy = data.copy()
+    # Special case for threshold=0 (everything matches)
+    if threshold == 0:
+        if not data:
+            return [], {}
+        first_item = data[0]
+        return [first_item], {first_item: data[1:]} if len(data) > 1 else {}
     
-    # Dictionary to store deduplicated results
-    # Keys are the kept strings, values are lists of their duplicates
+    # Use sets for faster lookups
+    processed_indices: Set[int] = set()
+    clean_data: List[str] = []
     duplicates_map: Dict[str, List[str]] = {}
     
-    # List to store deduplicated strings
-    clean_data: List[str] = []
+    # Determine if we should use parallel processing
+    use_parallel = n_jobs != 1 and len(data) > 1000
+    
+    if use_parallel:
+        # Use parallel processing for large datasets
+        return _dedupe_parallel(data, threshold, keep_first, n_jobs)
     
     # Process each string in the input data
-    while data_copy:
-        # Get the current string to process
-        current = data_copy.pop(0)
+    for i, current in enumerate(data):
+        if i in processed_indices:
+            continue
         
-        # If we're keeping the first occurrence, add it to the clean data
-        if keep_first:
-            clean_data.append(current)
-            duplicates_map[current] = [current]
+        # Mark this index as processed
+        processed_indices.add(i)
         
         # Find all strings in the remaining data that match the current string
-        # above the threshold
+        # above the threshold, but only search unprocessed items
+        unprocessed_data = [data[j] for j in range(len(data)) if j not in processed_indices]
+        unprocessed_indices = [j for j in range(len(data)) if j not in processed_indices]
+        
+        if not unprocessed_data:
+            # No more unprocessed items, just add the current item
+            clean_data.append(current)
+            continue
+        
+        # Get matches using RapidFuzz
         matches = process.extract(
             current, 
-            data_copy, 
+            unprocessed_data, 
             scorer=fuzz.ratio, 
-            score_cutoff=threshold
+            score_cutoff=threshold,
+            limit=None  # Get all matches
         )
         
-        # If we're not keeping the first occurrence, find the longest string
-        # among the current string and its matches
-        if not keep_first:
-            all_matches = [current] + [match[0] for match in matches]
+        # Convert match indices back to original data indices
+        match_indices = [unprocessed_indices[matches.index(match)] for match in matches]
+        match_strings = [match[0] for match in matches]
+        
+        # Mark matched indices as processed
+        processed_indices.update(match_indices)
+        
+        if keep_first:
+            # Keep the first occurrence
+            clean_data.append(current)
+            if match_strings:  # Only create entry if there are duplicates
+                duplicates_map[current] = match_strings
+        else:
+            # Keep the longest string
+            all_matches = [current] + match_strings
             longest = max(all_matches, key=len)
             clean_data.append(longest)
-            duplicates_map[longest] = all_matches
+            
+            # Remove the longest from the list of duplicates
+            all_matches.remove(longest)
+            if all_matches:  # Only create entry if there are duplicates
+                duplicates_map[longest] = all_matches
+    
+    return clean_data, duplicates_map
+
+
+def _dedupe_chunk(
+    chunk: List[str],
+    all_data: List[str],
+    threshold: int,
+    keep_first: bool
+) -> Tuple[List[str], Dict[str, List[str]]]:
+    """Process a chunk of data for parallel deduplication."""
+    clean_chunk = []
+    duplicates_chunk = {}
+    
+    for item in chunk:
+        # Find matches in the entire dataset
+        matches = process.extract(
+            item,
+            all_data,
+            scorer=fuzz.ratio,
+            score_cutoff=threshold,
+            limit=None
+        )
+        
+        match_strings = [match[0] for match in matches if match[0] != item]
+        
+        if keep_first:
+            clean_chunk.append(item)
+            if match_strings:
+                duplicates_chunk[item] = match_strings
         else:
-            # Add the matches to the duplicates map
-            duplicates_map[current].extend([match[0] for match in matches])
-        
-        # Remove the matches from the data copy
-        for match in matches:
-            data_copy.remove(match[0])
+            all_matches = [item] + match_strings
+            longest = max(all_matches, key=len)
+            clean_chunk.append(longest)
+            all_matches.remove(longest)
+            if all_matches:
+                duplicates_chunk[longest] = all_matches
     
-    # Remove self-references from the duplicates map
-    for key in duplicates_map:
-        if key in duplicates_map[key]:
-            duplicates_map[key].remove(key)
-        
-        # If there are no duplicates for this key, remove the empty list
-        if not duplicates_map[key]:
-            duplicates_map[key] = []
+    return clean_chunk, duplicates_chunk
+
+
+def _dedupe_parallel(
+    data: List[str],
+    threshold: int,
+    keep_first: bool,
+    n_jobs: Optional[int] = None
+) -> Tuple[List[str], Dict[str, List[str]]]:
+    """Parallel implementation of dedupe function."""
+    # Determine number of processes
+    if n_jobs is None:
+        n_jobs = multiprocessing.cpu_count()
+    else:
+        n_jobs = min(n_jobs, multiprocessing.cpu_count())
     
-    # Remove keys with empty lists from the duplicates map
-    duplicates_map = {k: v for k, v in duplicates_map.items() if v}
+    # Split data into chunks
+    chunk_size = max(1, len(data) // n_jobs)
+    chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
+    
+    # Process chunks in parallel
+    with multiprocessing.Pool(processes=n_jobs) as pool:
+        results = pool.map(
+            partial(_dedupe_chunk, all_data=data, threshold=threshold, keep_first=keep_first),
+            chunks
+        )
+    
+    # Combine results
+    clean_data = []
+    duplicates_map = {}
+    
+    for chunk_clean, chunk_dupes in results:
+        clean_data.extend(chunk_clean)
+        duplicates_map.update(chunk_dupes)
+    
+    # Deduplicate the clean data (may have duplicates across chunks)
+    clean_data = list(dict.fromkeys(clean_data))
     
     return clean_data, duplicates_map
 
@@ -134,26 +228,34 @@ def _dedupe_exact(
             - List of deduplicated strings
             - Dictionary mapping each kept string to its duplicates
     """
-    # Create a copy of the input data to avoid modifying the original
-    data_copy = data.copy()
-    
-    # Dictionary to store deduplicated results
-    # Keys are the kept strings, values are lists of their duplicates
+    # Use sets for faster lookups
+    seen: Set[str] = set()
+    clean_data: List[str] = []
     duplicates_map: Dict[str, List[str]] = {}
     
-    # List to store deduplicated strings
-    clean_data: List[str] = []
-    
-    # Dictionary to track seen strings
-    seen: Dict[str, str] = {}
-    
-    for item in data_copy:
-        if item in seen:
-            # This is a duplicate
-            duplicates_map.setdefault(seen[item], []).append(item)
-        else:
-            # This is a new string
+    if keep_first:
+        # Keep first occurrence
+        for item in data:
+            if item not in seen:
+                clean_data.append(item)
+                seen.add(item)
+            else:
+                # Add to duplicates map
+                for key in clean_data:
+                    if key == item:
+                        duplicates_map.setdefault(key, []).append(item)
+                        break
+    else:
+        # Keep longest occurrence
+        # Group items by their value
+        groups: Dict[str, List[str]] = {}
+        for item in data:
+            groups.setdefault(item, []).append(item)
+        
+        # Keep only one occurrence of each value
+        for item, occurrences in groups.items():
             clean_data.append(item)
-            seen[item] = item
+            if len(occurrences) > 1:
+                duplicates_map[item] = occurrences[1:]
     
     return clean_data, duplicates_map 
