@@ -29,11 +29,13 @@ jobs:
     - name: Type check with mypy
       run: |
         mypy fastdedupe
-    - name: Test with pytest
+    - name: Test with pytest and generate coverage
       run: |
-        pytest
+        pytest --cov=fastdedupe --cov-report=xml --cov-report=term
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.xml
-        fail_ci_if_error: true 
+        fail_ci_if_error: false
+        verbose: true 
