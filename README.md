@@ -8,6 +8,8 @@
 
 **Fast, Minimalist Text Deduplication Library for Python**
 
+![Fast Dedupe](https://i.postimg.cc/J0m90qMb/y-P5-PHn3-ITBav-Oe-OJ6-Qhp-Gw.jpg)
+
 ## 🧩 Problem Statement
 
 Developers frequently face **duplicate textual data** when dealing with:
