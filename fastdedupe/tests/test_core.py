@@ -60,6 +60,40 @@ class TestDedupe(unittest.TestCase):
         self.assertTrue("Apple" in clean or "apple" in clean or "APPLE" in clean)
         self.assertTrue("Banana" in clean)
 
+    def test_case_insensitive(self) -> None:
+        """Test deduplication with case_sensitive=False."""
+        data = ["Apple", "apple", "APPLE", "Banana"]
+        clean, dupes = dedupe(data, threshold=85, case_sensitive=False)
+        # With case_sensitive=False, all "apple" variants should be considered duplicates
+        self.assertEqual(len(clean), 2)
+        self.assertTrue("Apple" in clean or "apple" in clean or "APPLE" in clean)
+        self.assertTrue("Banana" in clean)
+        
+        # Check that the duplicates map contains the other case variants
+        for key in clean:
+            if key.lower() == "apple":
+                self.assertEqual(len(dupes[key]), 2)  # Should have 2 duplicates
+                for variant in ["Apple", "apple", "APPLE"]:
+                    if variant != key:
+                        self.assertTrue(variant in dupes[key])
+
+    def test_exact_case_insensitive(self) -> None:
+        """Test exact deduplication (threshold=100) with case_sensitive=False."""
+        data = ["Apple", "apple", "APPLE", "Banana"]
+        clean, dupes = dedupe(data, threshold=100, case_sensitive=False)
+        # With threshold=100 and case_sensitive=False, all "apple" variants should be considered duplicates
+        self.assertEqual(len(clean), 2)
+        self.assertTrue("Apple" in clean or "apple" in clean or "APPLE" in clean)
+        self.assertTrue("Banana" in clean)
+        
+        # Check that the duplicates map contains the other case variants
+        for key in clean:
+            if key.lower() == "apple":
+                self.assertEqual(len(dupes[key]), 2)  # Should have 2 duplicates
+                for variant in ["Apple", "apple", "APPLE"]:
+                    if variant != key:
+                        self.assertTrue(variant in dupes[key])
+
     def test_threshold_100(self) -> None:
         """Test deduplication with threshold=100 (exact matches only)."""
         data = ["Apple", "apple", "Apple iPhone", "Apple iPhone12"]

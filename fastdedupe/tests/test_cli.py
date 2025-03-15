@@ -9,6 +9,7 @@ import os
 import tempfile
 import unittest
 from unittest.mock import patch, MagicMock
+import argparse
 
 from fastdedupe import cli
 
@@ -133,25 +134,22 @@ class TestCLI(unittest.TestCase):
                  mock_read_input: MagicMock, 
                  mock_dedupe: MagicMock) -> None:
         """Test the main function."""
-        # Mock the parsed arguments
-        mock_args = MagicMock()
-        mock_args.input_file = self.txt_file
-        mock_args.output = self.output_file
-        mock_args.duplicates = self.duplicates_file
-        mock_args.threshold = 85
-        mock_args.format = "txt"
-        mock_args.csv_column = 0
-        mock_args.json_key = "text"
-        mock_args.keep_first = True
-        mock_parse_args.return_value = mock_args
-        
-        # Mock the input data
+        # Set up mock return values
+        mock_parse_args.return_value = argparse.Namespace(
+            input_file=self.txt_file,
+            output=self.output_file,
+            duplicates=self.duplicates_file,
+            threshold=85,
+            format="txt",
+            csv_column=0,
+            json_key="text",
+            keep_longest=False,
+            jobs=None,
+            case_insensitive=False
+        )
         mock_read_input.return_value = [
-            "Apple iPhone 12", "Apple iPhone12", 
-            "Samsung Galaxy", "Samsng Galaxy"
+            "Apple iPhone 12", "Apple iPhone12", "Samsung Galaxy", "Samsng Galaxy"
         ]
-        
-        # Mock the dedupe function
         mock_dedupe.return_value = (
             ["Apple iPhone 12", "Samsung Galaxy"],
             {
@@ -168,7 +166,11 @@ class TestCLI(unittest.TestCase):
             self.txt_file, "txt", 0, "text"
         )
         mock_dedupe.assert_called_once_with(
-            mock_read_input.return_value, threshold=85, keep_first=True
+            mock_read_input.return_value, 
+            threshold=85, 
+            keep_first=True,
+            n_jobs=None,
+            case_sensitive=True
         )
         mock_write_output.assert_called_once_with(
             self.output_file, ["Apple iPhone 12", "Samsung Galaxy"]

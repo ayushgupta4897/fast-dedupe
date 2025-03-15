@@ -51,28 +51,32 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--csv-column", 
-        help="Column name/index to deduplicate in CSV (default: 0)",
-        default=0,
-        type=lambda x: int(x) if x.isdigit() else x
+        help="Column name or index to use for CSV input (default: 0)",
+        default=0
     )
     parser.add_argument(
         "--json-key", 
-        help="Key to deduplicate in JSON (default: 'text')",
+        help="Key to use for JSON input (default: 'text')",
         default="text"
     )
     parser.add_argument(
-        "--keep-first", 
-        help="Keep first occurrence of duplicates (default)",
-        action="store_true", 
-        default=True
+        "--keep-longest", 
+        help="Keep longest string instead of first occurrence",
+        action="store_true"
     )
     parser.add_argument(
-        "--keep-longest", 
-        help="Keep longest occurrence of duplicates",
-        action="store_false", 
-        dest="keep_first"
+        "-j", 
+        "--jobs", 
+        help="Number of parallel jobs (default: auto)",
+        type=int, 
+        default=None
     )
-    
+    parser.add_argument(
+        "-i", 
+        "--case-insensitive", 
+        help="Ignore case when comparing strings",
+        action="store_true"
+    )
     return parser.parse_args()
 
 
@@ -220,7 +224,9 @@ def main() -> None:
     clean_data, duplicates = dedupe(
         data, 
         threshold=args.threshold, 
-        keep_first=args.keep_first
+        keep_first=not args.keep_longest,
+        n_jobs=args.jobs,
+        case_sensitive=not args.case_insensitive
     )
     
     # Write output data
