@@ -101,7 +101,7 @@ clean, dupes = fastdedupe.dedupe(emails, threshold=95)
 
 ## 📖 API Reference
 
-### `fastdedupe.dedupe(data, threshold=85, keep_first=True)`
+### `fastdedupe.dedupe(data, threshold=85, keep_first=True, n_jobs=None, case_sensitive=True)`
 
 Deduplicates a list of strings using fuzzy matching.
 
@@ -109,6 +109,8 @@ Deduplicates a list of strings using fuzzy matching.
 - `data` (list): List of strings to deduplicate
 - `threshold` (int, optional): Similarity threshold (0-100). Default is 85.
 - `keep_first` (bool, optional): If True, keeps the first occurrence of a duplicate. If False, keeps the longest string. Default is True.
+- `n_jobs` (int, optional): Number of parallel jobs to run. If None, uses all available CPU cores. Default is None.
+- `case_sensitive` (bool, optional): If True, matching is case-sensitive. If False, case is ignored when comparing strings. Default is True.
 
 **Returns:**
 - `tuple`: (clean_data, duplicates)
@@ -134,6 +136,12 @@ fastdedupe input.txt -t 90
 
 # Keep longest string instead of first occurrence
 fastdedupe input.txt --keep-longest
+
+# Case-insensitive matching
+fastdedupe input.txt -i
+
+# Specify number of parallel jobs
+fastdedupe input.txt -j 4
 
 # Work with CSV files
 fastdedupe data.csv -f csv --csv-column name
