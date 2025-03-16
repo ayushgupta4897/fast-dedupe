@@ -5,7 +5,7 @@ This module contains the main deduplication function that leverages RapidFuzz
 for high-performance fuzzy string matching.
 """
 
-from typing import Dict, List, Tuple, Set, Optional
+from typing import Dict, List, Tuple, Set, Optional, Callable
 from rapidfuzz import process, fuzz
 import multiprocessing
 from functools import partial
@@ -213,10 +213,15 @@ def _dedupe_parallel(
     
     # Process chunks in parallel
     with multiprocessing.Pool(processes=n_jobs) as pool:
-        results = pool.map(
-            partial(_dedupe_chunk, all_data=data, threshold=threshold, keep_first=keep_first, case_sensitive=case_sensitive),
-            chunks
+        # Add explicit type annotation for the partial function
+        chunk_processor: Callable[[List[str]], Tuple[List[str], Dict[str, List[str]]]] = partial(
+            _dedupe_chunk, 
+            all_data=data, 
+            threshold=threshold, 
+            keep_first=keep_first, 
+            case_sensitive=case_sensitive
         )
+        results = pool.map(chunk_processor, chunks)
     
     # Combine results
     clean_data = []
