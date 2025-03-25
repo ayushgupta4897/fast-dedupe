@@ -213,15 +213,17 @@ def _dedupe_parallel(
     
     # Process chunks in parallel
     with multiprocessing.Pool(processes=n_jobs) as pool:
-        # Add explicit type annotation for the partial function
-        chunk_processor: Callable[[List[str]], Tuple[List[str], Dict[str, List[str]]]] = partial(
-            _dedupe_chunk, 
-            all_data=data, 
-            threshold=threshold, 
-            keep_first=keep_first, 
-            case_sensitive=case_sensitive
-        )
-        results = pool.map(chunk_processor, chunks)
+        # Create a function with explicit type annotation
+        def process_chunk(chunk: List[str]) -> Tuple[List[str], Dict[str, List[str]]]:
+            return _dedupe_chunk(
+                chunk,
+                all_data=data,
+                threshold=threshold,
+                keep_first=keep_first,
+                case_sensitive=case_sensitive
+            )
+        
+        results = pool.map(process_chunk, chunks)
     
     # Combine results
     clean_data = []
