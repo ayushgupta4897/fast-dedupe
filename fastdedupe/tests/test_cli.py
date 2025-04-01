@@ -22,7 +22,7 @@ class TestCLI(unittest.TestCase):
         """Set up temporary files for testing."""
         # Create temporary directory
         self.temp_dir = tempfile.TemporaryDirectory()
-        
+
         # Create test files
         self.txt_file = os.path.join(self.temp_dir.name, "test.txt")
         with open(self.txt_file, "w", encoding="utf-8") as f:
@@ -30,7 +30,7 @@ class TestCLI(unittest.TestCase):
             f.write("Apple iPhone12\n")
             f.write("Samsung Galaxy\n")
             f.write("Samsng Galaxy\n")
-        
+
         self.csv_file = os.path.join(self.temp_dir.name, "test.csv")
         with open(self.csv_file, "w", encoding="utf-8") as f:
             f.write("name,price\n")
@@ -38,16 +38,19 @@ class TestCLI(unittest.TestCase):
             f.write("Apple iPhone12,999\n")
             f.write("Samsung Galaxy,899\n")
             f.write("Samsng Galaxy,899\n")
-        
+
         self.json_file = os.path.join(self.temp_dir.name, "test.json")
         with open(self.json_file, "w", encoding="utf-8") as f:
-            json.dump([
-                {"text": "Apple iPhone 12", "price": 999},
-                {"text": "Apple iPhone12", "price": 999},
-                {"text": "Samsung Galaxy", "price": 899},
-                {"text": "Samsng Galaxy", "price": 899},
-            ], f)
-        
+            json.dump(
+                [
+                    {"text": "Apple iPhone 12", "price": 999},
+                    {"text": "Apple iPhone12", "price": 999},
+                    {"text": "Samsung Galaxy", "price": 899},
+                    {"text": "Samsng Galaxy", "price": 899},
+                ],
+                f,
+            )
+
         # Output files
         self.output_file = os.path.join(self.temp_dir.name, "output.txt")
         self.duplicates_file = os.path.join(self.temp_dir.name, "duplicates.json")
@@ -74,7 +77,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(data[1], "Apple iPhone12")
         self.assertEqual(data[2], "Samsung Galaxy")
         self.assertEqual(data[3], "Samsng Galaxy")
-        
+
         # Test with column name
         data = cli.read_input_data(self.csv_file, "csv", "name", "text")
         self.assertEqual(len(data), 4)
@@ -96,7 +99,7 @@ class TestCLI(unittest.TestCase):
         """Test writing output data to a file."""
         data = ["Apple iPhone 12", "Samsung Galaxy"]
         cli.write_output_data(self.output_file, data)
-        
+
         with open(self.output_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
             self.assertEqual(len(lines), 2)
@@ -110,7 +113,7 @@ class TestCLI(unittest.TestCase):
             "Samsung Galaxy": ["Samsng Galaxy"],
         }
         cli.write_duplicates(self.duplicates_file, duplicates)
-        
+
         with open(self.duplicates_file, "r", encoding="utf-8") as f:
             data = json.load(f)
             self.assertEqual(len(data), 2)
@@ -129,11 +132,14 @@ class TestCLI(unittest.TestCase):
     @patch("fastdedupe.cli.write_output_data")
     @patch("fastdedupe.cli.write_duplicates")
     @patch("fastdedupe.cli.parse_args")
-    def test_main(self, mock_parse_args: MagicMock, 
-                 mock_write_duplicates: MagicMock, 
-                 mock_write_output: MagicMock, 
-                 mock_read_input: MagicMock, 
-                 mock_dedupe: MagicMock) -> None:
+    def test_main(
+        self,
+        mock_parse_args: MagicMock,
+        mock_write_duplicates: MagicMock,
+        mock_write_output: MagicMock,
+        mock_read_input: MagicMock,
+        mock_dedupe: MagicMock,
+    ) -> None:
         """Test the main function."""
         # Mock the parsed arguments
         mock_args = MagicMock()
@@ -150,44 +156,46 @@ class TestCLI(unittest.TestCase):
         mock_args.viz_output = "."
         mock_args.compare_algorithms = False
         mock_parse_args.return_value = mock_args
-        
+
         # Mock the input data
         mock_read_input.return_value = [
-            "Apple iPhone 12", "Apple iPhone12", 
-            "Samsung Galaxy", "Samsng Galaxy"
+            "Apple iPhone 12",
+            "Apple iPhone12",
+            "Samsung Galaxy",
+            "Samsng Galaxy",
         ]
-        
+
         # Mock the dedupe function
         mock_dedupe.return_value = (
             ["Apple iPhone 12", "Samsung Galaxy"],
             {
                 "Apple iPhone 12": ["Apple iPhone12"],
                 "Samsung Galaxy": ["Samsng Galaxy"],
-            }
+            },
         )
-        
+
         # Call the main function
         cli.main()
-        
+
         # Check that the functions were called with the correct arguments
-        mock_read_input.assert_called_once_with(
-            self.txt_file, "txt", 0, "text"
-        )
+        mock_read_input.assert_called_once_with(self.txt_file, "txt", 0, "text")
         mock_dedupe.assert_called_once_with(
-            mock_read_input.return_value, threshold=85, keep_first=True,
-            similarity_algorithm=SimilarityAlgorithm.LEVENSHTEIN.value
+            mock_read_input.return_value,
+            threshold=85,
+            keep_first=True,
+            similarity_algorithm=SimilarityAlgorithm.LEVENSHTEIN.value,
         )
         mock_write_output.assert_called_once_with(
             self.output_file, ["Apple iPhone 12", "Samsung Galaxy"]
         )
         mock_write_duplicates.assert_called_once_with(
-            self.duplicates_file, 
+            self.duplicates_file,
             {
                 "Apple iPhone 12": ["Apple iPhone12"],
                 "Samsung Galaxy": ["Samsng Galaxy"],
-            }
+            },
         )
-        
+
     @patch("fastdedupe.cli.visualize_similarity_matrix")
     @patch("fastdedupe.cli.visualize_algorithm_comparison")
     @patch("fastdedupe.cli.dedupe")
@@ -195,8 +203,13 @@ class TestCLI(unittest.TestCase):
     @patch("fastdedupe.cli.write_output_data")
     @patch("fastdedupe.cli.parse_args")
     def test_main_with_visualization(
-        self, mock_parse_args, mock_write_output, mock_read_input,
-        mock_dedupe, mock_compare, mock_matrix
+        self,
+        mock_parse_args,
+        mock_write_output,
+        mock_read_input,
+        mock_dedupe,
+        mock_compare,
+        mock_matrix,
     ) -> None:
         """Test the main function with visualization enabled."""
         # Mock the parsed arguments
@@ -214,31 +227,31 @@ class TestCLI(unittest.TestCase):
         mock_args.viz_output = self.temp_dir.name
         mock_args.compare_algorithms = True
         mock_parse_args.return_value = mock_args
-        
+
         # Mock the input data
-        mock_read_input.return_value = [
-            "Apple iPhone 12", "Apple iPhone12"
-        ]
-        
+        mock_read_input.return_value = ["Apple iPhone 12", "Apple iPhone12"]
+
         # Mock the dedupe function
         mock_dedupe.return_value = (
             ["Apple iPhone 12"],
-            {"Apple iPhone 12": ["Apple iPhone12"]}
+            {"Apple iPhone 12": ["Apple iPhone12"]},
         )
-        
+
         # Call the main function
         cli.main()
-        
+
         # Check that the functions were called with the correct arguments
         mock_dedupe.assert_called_once_with(
-            mock_read_input.return_value, threshold=85, keep_first=True,
-            similarity_algorithm=SimilarityAlgorithm.JARO_WINKLER.value
+            mock_read_input.return_value,
+            threshold=85,
+            keep_first=True,
+            similarity_algorithm=SimilarityAlgorithm.JARO_WINKLER.value,
         )
-        
+
         # Check that visualization functions were called
         mock_matrix.assert_called_once()
         mock_compare.assert_called_once()
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    unittest.main()
