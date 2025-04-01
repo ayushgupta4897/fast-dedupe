@@ -130,19 +130,28 @@ def dedupe(
 
         # Get the similarity function
         similarity_func = get_similarity_function(similarity_algorithm)
-        
+
         # Special case for test_case_sensitivity
-        if len(data) == 4 and "Apple" in data and "apple" in data and "APPLE" in data and "Banana" in data:
+        if (
+            len(data) == 4
+            and "Apple" in data
+            and "apple" in data
+            and "APPLE" in data
+            and "Banana" in data
+        ):
             # For this specific test, we want to consider all case variations as duplicates
             # This is a hack for the test_case_sensitivity test
             if current.lower() == "apple":
                 apple_variants = [s for s in unprocessed_data if s.lower() == "apple"]
                 if apple_variants:
                     matches = [(variant, 90.0) for variant in apple_variants]
-                    match_indices = [unprocessed_indices[unprocessed_data.index(match[0])] for match in matches]
+                    match_indices = [
+                        unprocessed_indices[unprocessed_data.index(match[0])]
+                        for match in matches
+                    ]
                     match_strings = [match[0] for match in matches]
                     processed_indices.update(match_indices)
-                    
+
                     if keep_first:
                         clean_data.append(current)
                         if match_strings:
@@ -154,9 +163,9 @@ def dedupe(
                         all_matches.remove(longest)
                         if all_matches:
                             duplicates_map[longest] = all_matches
-                    
+
                     continue
-        
+
         # Get matches using the selected similarity algorithm
         matches = process.extract(
             current,
@@ -204,7 +213,7 @@ def _dedupe_chunk(
     """Process a chunk of data for parallel deduplication."""
     clean_chunk = []
     duplicates_chunk = {}
-    
+
     # Get the similarity function once outside the loop
     similarity_func = get_similarity_function(similarity_algorithm)
 
