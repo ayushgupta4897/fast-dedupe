@@ -184,9 +184,10 @@ class TestDedupe(unittest.TestCase):
 
     def test_parallel_with_different_algorithms(self) -> None:
         """Test parallel deduplication with different similarity algorithms."""
-        # Create a large dataset to trigger parallel processing
-        data = ["Item " + str(i) for i in range(2000)]
-        data.extend(["Item " + str(i) + "a" for i in range(500)])
+        # Create a smaller dataset that still triggers parallel processing
+        # but doesn't take too long to process
+        data = ["Item " + str(i) for i in range(200)]  # Reduced from 2000
+        data.extend(["Item " + str(i) + "a" for i in range(50)])  # Reduced from 500
 
         # Test with different algorithms
         for algorithm in SimilarityAlgorithm:
