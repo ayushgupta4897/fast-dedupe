@@ -95,7 +95,7 @@ def levenshtein_similarity(s1: str, s2: str, **kwargs: Any) -> float:
         Similarity score (0-100)
     """
     # Pass through any additional kwargs that RapidFuzz might provide
-    return fuzz.ratio(s1, s2, **kwargs)
+    return float(fuzz.ratio(s1, s2, **kwargs))
 
 
 def jaro_winkler_similarity(s1: str, s2: str, **kwargs: Any) -> float:
@@ -194,10 +194,10 @@ def cosine_ngram_similarity(s1: str, s2: str, n: int = 3, **kwargs: Any) -> floa
         # Calculate cosine similarity
         similarity = cosine_similarity(X[0], X[1])[0][0]
         # Convert to a 0-100 scale
-        return similarity * 100
+        return float(similarity * 100)
     except ValueError:
         # If vectorization fails, fall back to Levenshtein
-        return levenshtein_similarity(s1, s2, **kwargs)
+        return float(levenshtein_similarity(s1, s2, **kwargs))
 
 
 def jaccard_similarity(s1: str, s2: str, tokenize: bool = True, **kwargs: Any) -> float:
