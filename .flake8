@@ -1,0 +1,10 @@
+[flake8]
+exclude =
+    .venv,
+    build,
+    dist,
+    .git,
+    __pycache__,
+    fast_dedupe.egg-info
+max-line-length = 88
+extend-ignore = E203
