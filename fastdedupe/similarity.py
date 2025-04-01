@@ -519,7 +519,9 @@ def soundex_similarity(s1: str, s2: str, **kwargs: Any) -> float:
             # If NYSIIS fails, fall back to not using it
             use_nysiis = False
             # Log the exception for debugging purposes
-            print(f"Warning: NYSIIS algorithm failed with error: {e}. Falling back to other algorithms.")
+            print(
+                f"Warning: NYSIIS algorithm failed with error: {e}. Falling back to other algorithms."
+            )
 
     # Calculate refined Soundex if requested
     # This handles common phonetic patterns better
