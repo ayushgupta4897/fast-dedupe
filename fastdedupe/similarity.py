@@ -10,17 +10,16 @@ fast-dedupe package. It includes implementations of:
 - Soundex/phonetic matching
 """
 
-from typing import Callable, Dict, List, Set, Tuple, Union, Optional, Any
 import re
-from collections import Counter
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Union
+import jellyfish
+import numpy as np
 
 # Third-party imports
 from rapidfuzz import fuzz
-import jellyfish
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 
 
 class SimilarityAlgorithm(str, Enum):
@@ -384,7 +383,7 @@ def visualize_similarity_matrix(
     # Add text annotations
     for i in range(n):
         for j in range(n):
-            text = ax.text(
+            ax.text(
                 j,
                 i,
                 f"{similarity_matrix[i, j]:.1f}",

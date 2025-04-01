@@ -8,11 +8,10 @@ import json
 import os
 import tempfile
 import unittest
-from unittest.mock import patch, MagicMock
-
-from fastdedupe.similarity import SimilarityAlgorithm
+from unittest.mock import MagicMock, patch
 
 from fastdedupe import cli
+from fastdedupe.similarity import SimilarityAlgorithm
 
 
 class TestCLI(unittest.TestCase):

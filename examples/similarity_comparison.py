@@ -6,19 +6,16 @@ fast-dedupe, and how to visualize the results.
 """
 
 import os
-from fastdedupe import (
-    dedupe,
-    SimilarityAlgorithm,
-    levenshtein_similarity,
-    jaro_winkler_similarity,
-    cosine_ngram_similarity,
-    jaccard_similarity,
-    soundex_similarity,
-    compare_all_algorithms,
-    visualize_similarity_matrix,
-    visualize_algorithm_comparison,
-)
+
 import matplotlib.pyplot as plt
+
+from fastdedupe import (
+    SimilarityAlgorithm,
+    compare_all_algorithms,
+    dedupe,
+    visualize_algorithm_comparison,
+    visualize_similarity_matrix,
+)
 
 
 def main():
@@ -147,7 +144,7 @@ def main():
 
     # Visualize similarity matrix
     print("Generating similarity matrix visualization...")
-    fig1 = visualize_similarity_matrix(
+    visualize_similarity_matrix(
         names,
         SimilarityAlgorithm.JARO_WINKLER,
         "visualization_examples/similarity_matrix.png",
@@ -155,7 +152,7 @@ def main():
 
     # Visualize algorithm comparison
     print("Generating algorithm comparison visualization...")
-    fig2 = visualize_algorithm_comparison(
+    visualize_algorithm_comparison(
         string1, string2, "visualization_examples/algorithm_comparison.png"
     )
 

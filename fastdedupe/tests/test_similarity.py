@@ -5,20 +5,21 @@ This module contains tests for the various similarity algorithms provided by
 the fast-dedupe package.
 """
 
-import unittest
 import os
 import tempfile
+import unittest
+
 from fastdedupe.similarity import (
     SimilarityAlgorithm,
-    get_similarity_function,
-    levenshtein_similarity,
-    jaro_winkler_similarity,
-    cosine_ngram_similarity,
-    jaccard_similarity,
-    soundex_similarity,
     compare_all_algorithms,
-    visualize_similarity_matrix,
+    cosine_ngram_similarity,
+    get_similarity_function,
+    jaccard_similarity,
+    jaro_winkler_similarity,
+    levenshtein_similarity,
+    soundex_similarity,
     visualize_algorithm_comparison,
+    visualize_similarity_matrix,
 )
 
 

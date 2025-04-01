@@ -5,13 +5,12 @@ This script demonstrates how to use the fast-dedupe library for
 deduplicating a list of strings.
 """
 
-import sys
 import os
+import sys
+from fastdedupe import dedupe
 
 # Add the parent directory to the path so we can import fastdedupe
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from fastdedupe import dedupe
 
 
 def main():

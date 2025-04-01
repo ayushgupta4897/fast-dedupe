@@ -11,14 +11,14 @@ __version__ = "0.2.0"
 from .core import dedupe
 from .similarity import (
     SimilarityAlgorithm,
-    levenshtein_similarity,
-    jaro_winkler_similarity,
+    compare_all_algorithms,
     cosine_ngram_similarity,
     jaccard_similarity,
+    jaro_winkler_similarity,
+    levenshtein_similarity,
     soundex_similarity,
-    compare_all_algorithms,
-    visualize_similarity_matrix,
     visualize_algorithm_comparison,
+    visualize_similarity_matrix,
 )
 
 __all__ = [

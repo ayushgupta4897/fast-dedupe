@@ -4,9 +4,9 @@ Tests for the __main__ module of fast-dedupe.
 This module contains tests for the __main__ module of the fast-dedupe package.
 """
 
+import sys
 import unittest
 from unittest.mock import patch
-import sys
 
 
 class TestMain(unittest.TestCase):

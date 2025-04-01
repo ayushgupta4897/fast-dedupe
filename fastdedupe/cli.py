@@ -8,15 +8,15 @@ allowing users to deduplicate text files from the command line.
 import argparse
 import csv
 import json
-import sys
 import os
-from typing import List, Dict, Optional, Union
+import sys
+from typing import Dict, List, Optional, Union
 
 from .core import dedupe
 from .similarity import (
     SimilarityAlgorithm,
-    visualize_similarity_matrix,
     visualize_algorithm_comparison,
+    visualize_similarity_matrix,
 )
 
 
