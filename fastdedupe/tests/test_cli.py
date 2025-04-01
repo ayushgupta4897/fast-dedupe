@@ -10,6 +10,8 @@ import tempfile
 import unittest
 from unittest.mock import patch, MagicMock
 
+from fastdedupe.similarity import SimilarityAlgorithm
+
 from fastdedupe import cli
 
 
@@ -143,6 +145,10 @@ class TestCLI(unittest.TestCase):
         mock_args.csv_column = 0
         mock_args.json_key = "text"
         mock_args.keep_first = True
+        mock_args.algorithm = SimilarityAlgorithm.LEVENSHTEIN.value
+        mock_args.visualize = False
+        mock_args.viz_output = "."
+        mock_args.compare_algorithms = False
         mock_parse_args.return_value = mock_args
         
         # Mock the input data
@@ -168,7 +174,8 @@ class TestCLI(unittest.TestCase):
             self.txt_file, "txt", 0, "text"
         )
         mock_dedupe.assert_called_once_with(
-            mock_read_input.return_value, threshold=85, keep_first=True
+            mock_read_input.return_value, threshold=85, keep_first=True,
+            similarity_algorithm=SimilarityAlgorithm.LEVENSHTEIN.value
         )
         mock_write_output.assert_called_once_with(
             self.output_file, ["Apple iPhone 12", "Samsung Galaxy"]
@@ -180,6 +187,57 @@ class TestCLI(unittest.TestCase):
                 "Samsung Galaxy": ["Samsng Galaxy"],
             }
         )
+        
+    @patch("fastdedupe.cli.visualize_similarity_matrix")
+    @patch("fastdedupe.cli.visualize_algorithm_comparison")
+    @patch("fastdedupe.cli.dedupe")
+    @patch("fastdedupe.cli.read_input_data")
+    @patch("fastdedupe.cli.write_output_data")
+    @patch("fastdedupe.cli.parse_args")
+    def test_main_with_visualization(
+        self, mock_parse_args, mock_write_output, mock_read_input,
+        mock_dedupe, mock_compare, mock_matrix
+    ) -> None:
+        """Test the main function with visualization enabled."""
+        # Mock the parsed arguments
+        mock_args = MagicMock()
+        mock_args.input_file = self.txt_file
+        mock_args.output = self.output_file
+        mock_args.duplicates = None
+        mock_args.threshold = 85
+        mock_args.format = "txt"
+        mock_args.csv_column = 0
+        mock_args.json_key = "text"
+        mock_args.keep_first = True
+        mock_args.algorithm = SimilarityAlgorithm.JARO_WINKLER.value
+        mock_args.visualize = True
+        mock_args.viz_output = self.temp_dir.name
+        mock_args.compare_algorithms = True
+        mock_parse_args.return_value = mock_args
+        
+        # Mock the input data
+        mock_read_input.return_value = [
+            "Apple iPhone 12", "Apple iPhone12"
+        ]
+        
+        # Mock the dedupe function
+        mock_dedupe.return_value = (
+            ["Apple iPhone 12"],
+            {"Apple iPhone 12": ["Apple iPhone12"]}
+        )
+        
+        # Call the main function
+        cli.main()
+        
+        # Check that the functions were called with the correct arguments
+        mock_dedupe.assert_called_once_with(
+            mock_read_input.return_value, threshold=85, keep_first=True,
+            similarity_algorithm=SimilarityAlgorithm.JARO_WINKLER.value
+        )
+        
+        # Check that visualization functions were called
+        mock_matrix.assert_called_once()
+        mock_compare.assert_called_once()
 
 
 if __name__ == "__main__":

@@ -1,28 +1,35 @@
 """
 Core functionality for fast-dedupe.
 
-This module contains the main deduplication function that leverages RapidFuzz
-for high-performance fuzzy string matching.
+This module contains the main deduplication function that leverages various
+string similarity algorithms for high-performance fuzzy string matching.
 """
 
-from typing import Dict, List, Tuple, Set, Optional
-from rapidfuzz import process, fuzz
+from typing import Dict, List, Tuple, Set, Optional, Union, Callable
+from rapidfuzz import process
 import multiprocessing
 from functools import partial
 
+from .similarity import (
+    SimilarityAlgorithm,
+    get_similarity_function,
+    levenshtein_similarity,
+    SimilarityFunc
+)
 
 def dedupe(
-    data: List[str], 
-    threshold: int = 85, 
+    data: List[str],
+    threshold: int = 85,
     keep_first: bool = True,
-    n_jobs: Optional[int] = None
+    n_jobs: Optional[int] = None,
+    similarity_algorithm: Union[str, SimilarityAlgorithm] = SimilarityAlgorithm.LEVENSHTEIN
 ) -> Tuple[List[str], Dict[str, List[str]]]:
     """
     Deduplicate a list of strings using fuzzy matching.
     
     This function identifies and removes duplicate strings from the input list
-    based on a similarity threshold. It uses the RapidFuzz library for fast
-    fuzzy string matching.
+    based on a similarity threshold. It supports multiple string similarity
+    algorithms for different use cases.
     
     Args:
         data (List[str]): List of strings to deduplicate.
@@ -34,6 +41,14 @@ def dedupe(
         n_jobs (int, optional): Number of parallel jobs to run. If None, uses
             all available CPU cores. If 1, runs in single-process mode.
             Default is None.
+        similarity_algorithm (Union[str, SimilarityAlgorithm], optional): The algorithm
+            to use for string similarity comparison. Default is Levenshtein.
+            Options include:
+            - 'levenshtein': Standard edit distance (best for general text)
+            - 'jaro_winkler': Better for short strings like names
+            - 'cosine': Better for longer documents
+            - 'jaccard': Good for set-based comparison
+            - 'soundex': Good for phonetic matching (names that sound similar)
     
     Returns:
         Tuple[List[str], Dict[str, List[str]]]: A tuple containing:
@@ -47,6 +62,14 @@ def dedupe(
         ['Apple iPhone 12', 'Samsung Galaxy']
         >>> print(dupes)
         {'Apple iPhone 12': ['Apple iPhone12']}
+        
+        >>> # Using Jaro-Winkler for name matching
+        >>> names = ["John Smith", "Jon Smith", "John Smyth"]
+        >>> clean, dupes = dedupe(names, threshold=85, similarity_algorithm='jaro_winkler')
+        >>> print(clean)
+        ['John Smith']
+        >>> print(dupes)
+        {'John Smith': ['Jon Smith', 'John Smyth']}
     """
     if not data:
         return [], {}
@@ -76,9 +99,9 @@ def dedupe(
     
     # Determine if we should use parallel processing
     use_parallel = n_jobs != 1 and len(data) > 1000
-    
     if use_parallel:
         # Use parallel processing for large datasets
+        return _dedupe_parallel(data, threshold, keep_first, n_jobs, similarity_algorithm)
         return _dedupe_parallel(data, threshold, keep_first, n_jobs)
     
     # Process each string in the input data
@@ -99,11 +122,14 @@ def dedupe(
             clean_data.append(current)
             continue
         
-        # Get matches using RapidFuzz
+        # Get the similarity function
+        similarity_func = get_similarity_function(similarity_algorithm)
+        
+        # Get matches using the selected similarity algorithm
         matches = process.extract(
-            current, 
-            unprocessed_data, 
-            scorer=fuzz.ratio, 
+            current,
+            unprocessed_data,
+            scorer=similarity_func,
             score_cutoff=threshold,
             limit=None  # Get all matches
         )
@@ -138,18 +164,22 @@ def _dedupe_chunk(
     chunk: List[str],
     all_data: List[str],
     threshold: int,
-    keep_first: bool
+    keep_first: bool,
+    similarity_algorithm: Union[str, SimilarityAlgorithm] = SimilarityAlgorithm.LEVENSHTEIN
 ) -> Tuple[List[str], Dict[str, List[str]]]:
     """Process a chunk of data for parallel deduplication."""
     clean_chunk = []
     duplicates_chunk = {}
     
     for item in chunk:
+        # Get the similarity function
+        similarity_func = get_similarity_function(similarity_algorithm)
+        
         # Find matches in the entire dataset
         matches = process.extract(
             item,
             all_data,
-            scorer=fuzz.ratio,
+            scorer=similarity_func,
             score_cutoff=threshold,
             limit=None
         )
@@ -175,7 +205,8 @@ def _dedupe_parallel(
     data: List[str],
     threshold: int,
     keep_first: bool,
-    n_jobs: Optional[int] = None
+    n_jobs: Optional[int] = None,
+    similarity_algorithm: Union[str, SimilarityAlgorithm] = SimilarityAlgorithm.LEVENSHTEIN
 ) -> Tuple[List[str], Dict[str, List[str]]]:
     """Parallel implementation of dedupe function."""
     # Determine number of processes
@@ -191,7 +222,8 @@ def _dedupe_parallel(
     # Process chunks in parallel
     with multiprocessing.Pool(processes=n_jobs) as pool:
         results = pool.map(
-            partial(_dedupe_chunk, all_data=data, threshold=threshold, keep_first=keep_first),
+            partial(_dedupe_chunk, all_data=data, threshold=threshold, keep_first=keep_first,
+                   similarity_algorithm=similarity_algorithm),
             chunks
         )
     
