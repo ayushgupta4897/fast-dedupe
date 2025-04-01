@@ -409,14 +409,14 @@ def jaccard_similarity(s1: str, s2: str, tokenize: bool = True, **kwargs: Any) -
         # Combine both metrics (70% position-aware, 30% character-only)
         # This balances order importance with character presence
         if pos_union == 0:
-            pos_similarity = 0
+            pos_similarity = 0.0
         else:
-            pos_similarity = pos_intersection / pos_union
+            pos_similarity = float(pos_intersection / pos_union)
 
         if char_union == 0:
-            char_similarity = 0
+            char_similarity = 0.0
         else:
-            char_similarity = char_intersection / char_union
+            char_similarity = float(char_intersection / char_union)
 
         # Weighted combination
         similarity = (0.7 * pos_similarity + 0.3 * char_similarity) * 100
@@ -518,16 +518,17 @@ def soundex_similarity(s1: str, s2: str, **kwargs: Any) -> float:
         except Exception as e:
             # If NYSIIS fails, fall back to not using it
             use_nysiis = False
-            # Log the exception for debugging purposes
+            # Log the exception for debugging purposes (consider using logging module)
             print(
-                f"Warning: NYSIIS algorithm failed with error: {e}. Falling back to other algorithms."
+                f"Warning: NYSIIS algorithm failed with error: {e}. "
+                "Falling back to other algorithms."
             )
 
     # Calculate refined Soundex if requested
     # This handles common phonetic patterns better
     if use_refined_soundex:
         # Custom refined Soundex implementation
-        def refined_soundex(word):
+        def refined_soundex(word: str) -> str:
             # Handle empty strings
             if not word:
                 return ""
