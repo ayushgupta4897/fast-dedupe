@@ -9,9 +9,11 @@ import argparse
 import csv
 import json
 import sys
+import os
 from typing import List, Dict, Optional, Union
 
 from .core import dedupe
+from .similarity import SimilarityAlgorithm, visualize_similarity_matrix, visualize_algorithm_comparison
 
 
 def parse_args() -> argparse.Namespace:
@@ -69,8 +71,32 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--keep-longest", 
         help="Keep longest occurrence of duplicates",
-        action="store_false", 
+        action="store_false",
         dest="keep_first"
+    )
+    parser.add_argument(
+        "-a",
+        "--algorithm",
+        help="Similarity algorithm to use (default: levenshtein)",
+        choices=[algo.value for algo in SimilarityAlgorithm],
+        default=SimilarityAlgorithm.LEVENSHTEIN.value
+    )
+    parser.add_argument(
+        "--visualize",
+        help="Generate visualization of similarity comparisons",
+        action="store_true",
+        default=False
+    )
+    parser.add_argument(
+        "--viz-output",
+        help="Output directory for visualizations (default: current directory)",
+        default="."
+    )
+    parser.add_argument(
+        "--compare-algorithms",
+        help="Compare all algorithms on the dataset and visualize results",
+        action="store_true",
+        default=False
     )
     
     return parser.parse_args()
@@ -218,10 +244,38 @@ def main() -> None:
     
     # Deduplicate data
     clean_data, duplicates = dedupe(
-        data, 
-        threshold=args.threshold, 
-        keep_first=args.keep_first
+        data,
+        threshold=args.threshold,
+        keep_first=args.keep_first,
+        similarity_algorithm=args.algorithm
     )
+    
+    # Generate visualizations if requested
+    if args.visualize and data:
+        # Create output directory if it doesn't exist
+        os.makedirs(args.viz_output, exist_ok=True)
+        
+        # Limit to a reasonable number of items for visualization
+        viz_data = data[:20] if len(data) > 20 else data
+        
+        # Generate similarity matrix visualization
+        matrix_file = os.path.join(args.viz_output, f"similarity_matrix_{args.algorithm}.png")
+        visualize_similarity_matrix(viz_data, args.algorithm, matrix_file)
+        print(f"Similarity matrix visualization saved to: {matrix_file}", file=sys.stderr)
+        
+    # Compare algorithms if requested
+    if args.compare_algorithms and len(data) >= 2:
+        # Create output directory if it doesn't exist
+        os.makedirs(args.viz_output, exist_ok=True)
+        
+        # Select a pair of strings to compare
+        s1 = data[0]
+        s2 = data[1] if len(data) > 1 else data[0]
+        
+        # Generate algorithm comparison visualization
+        comparison_file = os.path.join(args.viz_output, "algorithm_comparison.png")
+        visualize_algorithm_comparison(s1, s2, comparison_file)
+        print(f"Algorithm comparison visualization saved to: {comparison_file}", file=sys.stderr)
     
     # Write output data
     write_output_data(args.output, clean_data)

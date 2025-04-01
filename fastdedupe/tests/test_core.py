@@ -6,7 +6,7 @@ ensuring it works correctly with various inputs and edge cases.
 """
 
 import unittest
-from fastdedupe import dedupe
+from fastdedupe import dedupe, SimilarityAlgorithm
 from fastdedupe.core import _dedupe_exact
 
 
@@ -146,6 +146,45 @@ class TestDedupe(unittest.TestCase):
         self.assertTrue("short" in clean)
         self.assertTrue("very long string" in clean)
         self.assertEqual(dupes, {"short": ["short"]})
+        
+    def test_different_similarity_algorithms(self) -> None:
+        """Test deduplication with different similarity algorithms."""
+        # Test data with names that have spelling variations
+        data = ["Catherine", "Katherine", "Kathryn", "Robert", "Roberto"]
+        
+        # Test with default Levenshtein algorithm
+        clean_lev, dupes_lev = dedupe(data, threshold=80)
+        
+        # Test with Jaro-Winkler algorithm
+        clean_jw, dupes_jw = dedupe(data, threshold=85,
+                                    similarity_algorithm=SimilarityAlgorithm.JARO_WINKLER)
+        
+        # Test with Soundex algorithm
+        clean_soundex, dupes_soundex = dedupe(data, threshold=85,
+                                             similarity_algorithm=SimilarityAlgorithm.SOUNDEX)
+        
+        # Different algorithms should produce different results
+        # We don't assert specific results as they depend on the algorithm implementation
+        # Just verify that the function runs without errors with different algorithms
+        self.assertIsInstance(clean_lev, list)
+        self.assertIsInstance(dupes_lev, dict)
+        self.assertIsInstance(clean_jw, list)
+        self.assertIsInstance(dupes_jw, dict)
+        self.assertIsInstance(clean_soundex, list)
+        self.assertIsInstance(dupes_soundex, dict)
+        
+    def test_parallel_with_different_algorithms(self) -> None:
+        """Test parallel deduplication with different similarity algorithms."""
+        # Create a large dataset to trigger parallel processing
+        data = ["Item " + str(i) for i in range(2000)]
+        data.extend(["Item " + str(i) + "a" for i in range(500)])
+        
+        # Test with different algorithms
+        for algorithm in SimilarityAlgorithm:
+            clean, dupes = dedupe(data, threshold=85, similarity_algorithm=algorithm)
+            # Just verify that the function runs without errors
+            self.assertIsInstance(clean, list)
+            self.assertIsInstance(dupes, dict)
 
 
 if __name__ == "__main__":

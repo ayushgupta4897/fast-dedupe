@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/ayushgupta4897/fast-dedupe/graph/badge.svg?token=8V1NG5QKX6)](https://codecov.io/gh/ayushgupta4897/fast-dedupe)
 [![MIT License](https://img.shields.io/github/license/username/fast-dedupe.svg)](https://github.com/username/fast-dedupe/blob/main/LICENSE)
 
-**Fast, Minimalist Text Deduplication Library for Python**
+**Fast, Minimalist Text Deduplication Library for Python with Comprehensive String Similarity Algorithms**
 
 ![Fast Dedupe](https://i.postimg.cc/J0m90qMb/y-P5-PHn3-ITBav-Oe-OJ6-Qhp-Gw.jpg)
 
@@ -26,8 +26,8 @@ Developers frequently face **duplicate textual data** when dealing with:
 - **Pandas built-in methods:** Only exact matches; ineffective for slight differences (typos, synonyms).
 - **Fuzzywuzzy / RapidFuzz:** Powerful but require boilerplate setup for large-scale deduplication.
 
-**Solution:**  
-A simple, intuitive, ready-to-use deduplication wrapper around RapidFuzz, minimizing setup effort while providing great speed and accuracy out-of-the-box.
+**Solution:**
+A simple, intuitive, ready-to-use deduplication library with multiple string similarity algorithms, minimizing setup effort while providing great speed and accuracy out-of-the-box.
 
 ## ⚡ Installation
 
@@ -55,14 +55,70 @@ print(duplicates)
 ```
 
 ## 📌 Key Features
-
-- **High performance:** Powered by RapidFuzz for sub-millisecond matching
+- **Multiple Similarity Algorithms:** Choose from Levenshtein, Jaro-Winkler, Cosine, Jaccard, and Soundex
+- **Algorithm Selection:** Pick the best algorithm for your specific use case
+- **High performance:** Powered by RapidFuzz and optimized implementations for sub-millisecond matching
 - **Simple API:** Single method call (`fastdedupe.dedupe()`)
 - **Flexible Matching:** Handles minor spelling differences, hyphens, abbreviations
 - **Configurable Sensitivity:** Adjust matching threshold easily
 - **Detailed Output:** Cleaned records and clear mapping of detected duplicates
+- **Visualization Tools:** Visualize similarity matrices and algorithm comparisons
 - **Command-line Interface:** Deduplicate files directly from the terminal
 - **High Test Coverage:** 93%+ code coverage ensures reliability
+- **High Test Coverage:** 93%+ code coverage ensures reliability
+
+## 🧠 Similarity Algorithms
+
+fast-dedupe provides multiple string similarity algorithms, each optimized for different use cases:
+
+| Algorithm | Best For | Description |
+|-----------|----------|-------------|
+| **Levenshtein** | General text | Standard edit distance, good for most text with typos and small variations |
+| **Jaro-Winkler** | Names, short strings | Optimized for personal names and short strings, gives higher weight to matching prefixes |
+| **Cosine** | Documents, longer text | Uses character n-grams for comparing longer texts, good for document similarity |
+| **Jaccard** | Set-based comparison | Compares word overlap, good for keyword matching and tag comparison |
+| **Soundex** | Phonetic matching | Matches strings that sound similar but are spelled differently, ideal for names |
+
+```python
+from fastdedupe import dedupe, SimilarityAlgorithm
+
+# Using Jaro-Winkler for name matching
+names = ["John Smith", "Jon Smith", "John Smyth"]
+clean_data, duplicates = dedupe(names, similarity_algorithm=SimilarityAlgorithm.JARO_WINKLER)
+
+# Using Soundex for phonetic matching
+names = ["Catherine", "Katherine", "Kathryn"]
+clean_data, duplicates = dedupe(names, similarity_algorithm=SimilarityAlgorithm.SOUNDEX)
+```
+
+## 📊 Visualization
+
+fast-dedupe includes visualization tools to help you understand and compare similarity algorithms:
+
+```python
+from fastdedupe import visualize_similarity_matrix, visualize_algorithm_comparison
+import matplotlib.pyplot as plt
+
+# Visualize similarity matrix for a set of strings
+data = ["Apple iPhone 12", "Apple iPhone12", "Samsung Galaxy"]
+fig1 = visualize_similarity_matrix(data, "levenshtein", "similarity_matrix.png")
+
+# Compare how different algorithms rate the similarity of two strings
+s1 = "Catherine"
+s2 = "Katherine"
+fig2 = visualize_algorithm_comparison(s1, s2, "algorithm_comparison.png")
+
+# Display the visualizations
+plt.show()
+```
+
+Example similarity matrix visualization:
+
+![Similarity Matrix](https://i.postimg.cc/L8QJnXZH/similarity-matrix-example.png)
+
+Example algorithm comparison visualization:
+
+![Algorithm Comparison](https://i.postimg.cc/VkXnGJRH/algorithm-comparison-example.png)
 
 ## 🎯 Use Cases
 
@@ -101,7 +157,7 @@ clean, dupes = fastdedupe.dedupe(emails, threshold=95)
 
 ## 📖 API Reference
 
-### `fastdedupe.dedupe(data, threshold=85, keep_first=True)`
+### `fastdedupe.dedupe(data, threshold=85, keep_first=True, n_jobs=None, similarity_algorithm='levenshtein')`
 
 Deduplicates a list of strings using fuzzy matching.
 
@@ -109,15 +165,61 @@ Deduplicates a list of strings using fuzzy matching.
 - `data` (list): List of strings to deduplicate
 - `threshold` (int, optional): Similarity threshold (0-100). Default is 85.
 - `keep_first` (bool, optional): If True, keeps the first occurrence of a duplicate. If False, keeps the longest string. Default is True.
+- `n_jobs` (int, optional): Number of parallel jobs to run. If None, uses all available CPU cores. Default is None.
+- `similarity_algorithm` (str or SimilarityAlgorithm, optional): Algorithm to use for string similarity comparison. Options include 'levenshtein', 'jaro_winkler', 'cosine', 'jaccard', and 'soundex'. Default is 'levenshtein'.
 
 **Returns:**
 - `tuple`: (clean_data, duplicates)
   - `clean_data` (list): List of deduplicated strings
   - `duplicates` (dict): Dictionary mapping each kept string to its duplicates
 
+### Similarity Functions
+
+fast-dedupe also provides direct access to the similarity functions:
+
+```python
+from fastdedupe import (
+    levenshtein_similarity,
+    jaro_winkler_similarity,
+    cosine_ngram_similarity,
+    jaccard_similarity,
+    soundex_similarity,
+    compare_all_algorithms
+)
+
+# Compare two strings using a specific algorithm
+score = jaro_winkler_similarity("Catherine", "Katherine")
+print(f"Jaro-Winkler similarity: {score}")  # Output: Jaro-Winkler similarity: 91.8
+
+# Compare using all available algorithms
+results = compare_all_algorithms("Catherine", "Katherine")
+for algorithm, score in results.items():
+    print(f"{algorithm}: {score}")
+```
+
+### Visualization Functions
+
+```python
+from fastdedupe import visualize_similarity_matrix, visualize_algorithm_comparison
+
+# Visualize similarity matrix
+fig1 = visualize_similarity_matrix(
+    strings,                      # List of strings to compare
+    similarity_algorithm,         # Algorithm to use (default: 'levenshtein')
+    output_file=None              # Optional path to save the visualization
+)
+
+# Visualize algorithm comparison
+fig2 = visualize_algorithm_comparison(
+    string1,                      # First string to compare
+    string2,                      # Second string to compare
+    output_file=None              # Optional path to save the visualization
+)
+```
+
 ## 🖥️ Command-line Interface
 
-fast-dedupe also provides a command-line interface for deduplicating files:
+fast-dedupe provides a command-line interface for deduplicating files:
 
 ```bash
 # Basic usage
@@ -140,6 +242,18 @@ fastdedupe data.csv -f csv --csv-column name
 
 # Work with JSON files
 fastdedupe data.json -f json --json-key text
+
+# Use a different similarity algorithm
+fastdedupe input.txt -a jaro_winkler
+
+# Generate visualization of similarity comparisons
+fastdedupe input.txt --visualize
+
+# Compare all algorithms on the dataset
+fastdedupe input.txt --compare-algorithms
+
+# Specify output directory for visualizations
+fastdedupe input.txt --visualize --viz-output ./visualizations/
 ```
 
 ## 👥 Target Audience
@@ -163,12 +277,14 @@ For more details, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Performance
 
-Fast-dedupe is designed for high performance fuzzy string matching and deduplication. It leverages the [RapidFuzz](https://github.com/maxbachmann/RapidFuzz) library for efficient string comparisons and adds several optimizations:
+Fast-dedupe is designed for high performance fuzzy string matching and deduplication. It leverages the [RapidFuzz](https://github.com/maxbachmann/RapidFuzz) library and other optimized implementations for efficient string comparisons and adds several optimizations:
 
+- **Multiple algorithms**: Choose the best algorithm for your specific use case
 - **Efficient data structures**: Uses sets and dictionaries for O(1) lookups
 - **Parallel processing**: Automatically uses multiple CPU cores for large datasets
 - **Early termination**: Optimized algorithms that avoid unnecessary comparisons
 - **Memory efficiency**: Processes data in chunks to reduce memory usage
+- **Algorithm-specific optimizations**: Each similarity algorithm is optimized for its specific use case
 
 ### How Multiprocessing Works
 
