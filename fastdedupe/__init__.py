@@ -18,7 +18,7 @@ from .similarity import (
     soundex_similarity,
     compare_all_algorithms,
     visualize_similarity_matrix,
-    visualize_algorithm_comparison
+    visualize_algorithm_comparison,
 )
 
 __all__ = [
@@ -31,5 +31,5 @@ __all__ = [
     "soundex_similarity",
     "compare_all_algorithms",
     "visualize_similarity_matrix",
-    "visualize_algorithm_comparison"
+    "visualize_algorithm_comparison",
 ]

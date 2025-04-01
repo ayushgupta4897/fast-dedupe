@@ -58,4 +58,4 @@ setup(
         "Source": "https://github.com/username/fast-dedupe",
         "Documentation": "https://github.com/username/fast-dedupe",
     },
-) 
+)
