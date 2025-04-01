@@ -5,16 +5,13 @@ This module contains the main deduplication function that leverages various
 string similarity algorithms for high-performance fuzzy string matching.
 """
 
-from typing import Dict, List, Tuple, Set, Optional, Union, Callable
-from rapidfuzz import process
 import multiprocessing
 from functools import partial
-
+from typing import Dict, List, Optional, Set, Tuple, Union
+from rapidfuzz import process
 from .similarity import (
     SimilarityAlgorithm,
     get_similarity_function,
-    levenshtein_similarity,
-    SimilarityFunc,
 )
 
 
@@ -68,7 +65,8 @@ def dedupe(
 
         >>> # Using Jaro-Winkler for name matching
         >>> names = ["John Smith", "Jon Smith", "John Smyth"]
-        >>> clean, dupes = dedupe(names, threshold=85, similarity_algorithm='jaro_winkler')
+        >>> clean, dupes = dedupe(names, threshold=85,
+        ...                       similarity_algorithm='jaro_winkler')
         >>> print(clean)
         ['John Smith']
         >>> print(dupes)

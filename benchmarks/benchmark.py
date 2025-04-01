@@ -6,20 +6,21 @@ This script compares the performance of fastdedupe with pandas and fuzzywuzzy
 on various dataset sizes and similarity thresholds.
 """
 
-import time
+import argparse
+import json
+import os
 import random
 import string
-import pandas as pd
+import time
+from typing import Dict, List, Tuple
+
 import matplotlib.pyplot as plt
-from typing import List, Dict, Tuple
-import argparse
-import os
-import json
+import pandas as pd
+from fuzzywuzzy import process as fuzzywuzzy_process
 from tqdm import tqdm
 
 # Import the libraries to benchmark
 from fastdedupe import dedupe
-from fuzzywuzzy import process as fuzzywuzzy_process
 
 
 def generate_dataset(
@@ -232,7 +233,8 @@ def run_benchmarks(
                             results[lib_name]["clean_count"].append(clean_count)
                         except Exception as e:
                             print(
-                                f"Error in {lib_name} with size={size}, threshold={threshold}: {e}"
+                                f"Error in {lib_name} with size={size}, "
+                                f"threshold={threshold}: {e}"
                             )
                             # Add a very high time to indicate failure
                             results[lib_name]["time"].append(float("inf"))
@@ -380,7 +382,8 @@ def generate_markdown_report(
 
         f.write("## Summary\n\n")
         f.write(
-            "This report compares the performance of fast-dedupe with other deduplication libraries:\n\n"
+            "This report compares the performance of fast-dedupe with other "
+            "deduplication libraries:\n\n"
         )
         f.write("- **fast-dedupe**: Our optimized fuzzy string matching library\n")
         f.write("- **pandas**: Using TF-IDF vectorization and cosine similarity\n")
@@ -397,10 +400,12 @@ def generate_markdown_report(
 
             # Create table header
             f.write(
-                "| Dataset Size | fast-dedupe (s) | pandas (s) | fuzzywuzzy (s) | Speedup vs pandas | Speedup vs fuzzywuzzy |\n"
+                "| Dataset Size | fast-dedupe (s) | pandas (s) | fuzzywuzzy (s) | "
+                "Speedup vs pandas | Speedup vs fuzzywuzzy |\n"
             )
             f.write(
-                "|--------------|-----------------|------------|----------------|-------------------|----------------------|\n"
+                "|--------------|-----------------|------------|----------------| "
+                "-------------------|----------------------|\n"
             )
 
             for size in sizes:
@@ -458,12 +463,16 @@ def generate_markdown_report(
 
                 # Add row to table
                 f.write(
-                    f"| {size} | {times['fastdedupe']} | {times['pandas']} | {times['fuzzywuzzy']} | {speedups['pandas']} | {speedups['fuzzywuzzy']} |\n"
+                    f"| {size:<12} | {times['fastdedupe']:<15} | "
+                    f"{times['pandas']:<10} | "
+                    f"{times['fuzzywuzzy']:<14} | {speedups['pandas']:<17} | "
+                    f"{speedups['fuzzywuzzy']:<20} |\n"
                 )
 
             f.write("\n")
             f.write(
-                f"![Time vs Size (Threshold: {threshold})](time_vs_size_threshold_{threshold}.png)\n\n"
+                f"![Time vs Size (Threshold: {threshold})]"
+                f"(time_vs_size_threshold_{threshold}.png)\n\n"
             )
 
         f.write("## Conclusion\n\n")
@@ -480,20 +489,24 @@ def generate_markdown_report(
         if fastdedupe_times and pandas_times:
             avg_speedup_pandas = sum(pandas_times) / sum(fastdedupe_times)
             f.write(
-                f"- On average, fast-dedupe is **{avg_speedup_pandas:.2f}x faster than pandas**\n"
+                f"- On average, fast-dedupe is "
+                f"**{avg_speedup_pandas:.2f}x faster than pandas**\n"
             )
 
         if fastdedupe_times and fuzzywuzzy_times:
             avg_speedup_fuzzywuzzy = sum(fuzzywuzzy_times) / sum(fastdedupe_times)
             f.write(
-                f"- On average, fast-dedupe is **{avg_speedup_fuzzywuzzy:.2f}x faster than fuzzywuzzy**\n"
+                f"- On average, fast-dedupe is "
+                f"**{avg_speedup_fuzzywuzzy:.2f}x faster than fuzzywuzzy**\n"
             )
 
         f.write(
-            "\nThese benchmarks demonstrate that fast-dedupe provides significant performance improvements "
+            "\nThese benchmarks demonstrate that fast-dedupe provides significant "
+            "performance improvements "
         )
         f.write(
-            "over other popular libraries for fuzzy string matching and deduplication tasks.\n"
+            "over other popular libraries for fuzzy string matching and "
+            "deduplication tasks.\n"
         )
 
 

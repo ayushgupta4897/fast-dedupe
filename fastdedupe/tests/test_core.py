@@ -6,7 +6,7 @@ ensuring it works correctly with various inputs and edge cases.
 """
 
 import unittest
-from fastdedupe import dedupe, SimilarityAlgorithm
+from fastdedupe import SimilarityAlgorithm, dedupe
 from fastdedupe.core import _dedupe_exact
 
 
@@ -172,7 +172,8 @@ class TestDedupe(unittest.TestCase):
         )
 
         # Different algorithms should produce different results
-        # We don't assert specific results as they depend on the algorithm implementation
+        # We don't assert specific results as they depend on the algorithm
+        # implementation
         # Just verify that the function runs without errors with different algorithms
         self.assertIsInstance(clean_lev, list)
         self.assertIsInstance(dupes_lev, dict)
