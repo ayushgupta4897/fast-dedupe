@@ -5,7 +5,13 @@ description = "A minimalist but optimized Python package for deduplication tasks
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "rapidfuzz>=2.0.0,<3.0.0"
+    "fuzzywuzzy>=0.18.0",
+    "jellyfish>=1.0.0,<2.0.0",
+    "matplotlib>=3.5.0,<4.0.0",
+    "pandas>=2.2.3",
+    "rapidfuzz>=2.0.0,<3.0.0",
+    "scikit-learn>=1.0.0,<2.0.0",
+    "tqdm>=4.67.1",
 ]
 
 [build-system]
@@ -27,8 +33,18 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+ignore_missing_imports = true
 
-[tool.pytest.ini_options]
-testpaths = ["fastdedupe/tests"]
-python_files = ["test_*.py"]
-addopts = ["--cov=fastdedupe", "--cov-report=xml", "--cov-report=term-missing"] 
+# Pytest configuration removed to avoid conflicts with command line options
+
+[tool.flake8]
+exclude = [
+    ".venv",
+    "build",
+    "dist",
+    ".git",
+    "__pycache__",
+    "fast_dedupe.egg-info",
+]
+max-line-length = 88
+extend-ignore = ["E203"] # Ignore whitespace before ':' which conflicts with black

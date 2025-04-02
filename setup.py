@@ -5,7 +5,8 @@ This script is used to install the fast-dedupe package.
 """
 
 import os
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 # Read the contents of the README file
 with open("README.md", encoding="utf-8") as f:
@@ -58,4 +59,4 @@ setup(
         "Source": "https://github.com/username/fast-dedupe",
         "Documentation": "https://github.com/username/fast-dedupe",
     },
-) 
+)

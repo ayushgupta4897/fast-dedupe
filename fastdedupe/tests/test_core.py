@@ -6,7 +6,7 @@ ensuring it works correctly with various inputs and edge cases.
 """
 
 import unittest
-from fastdedupe import dedupe
+from fastdedupe import SimilarityAlgorithm, dedupe
 from fastdedupe.core import _dedupe_exact
 
 
@@ -45,10 +45,13 @@ class TestDedupe(unittest.TestCase):
         data = ["Apple iPhone 12", "Apple iPhone12", "Samsung Galaxy", "Samsng Galaxy"]
         clean, dupes = dedupe(data)
         self.assertEqual(clean, ["Apple iPhone 12", "Samsung Galaxy"])
-        self.assertEqual(dupes, {
-            "Apple iPhone 12": ["Apple iPhone12"],
-            "Samsung Galaxy": ["Samsng Galaxy"]
-        })
+        self.assertEqual(
+            dupes,
+            {
+                "Apple iPhone 12": ["Apple iPhone12"],
+                "Samsung Galaxy": ["Samsng Galaxy"],
+            },
+        )
 
     def test_case_sensitivity(self) -> None:
         """Test deduplication with case differences."""
@@ -117,14 +120,14 @@ class TestDedupe(unittest.TestCase):
     def test_real_world_example(self) -> None:
         """Test deduplication with a real-world example."""
         data = [
-            "Flipkart India", 
+            "Flipkart India",
             "Flipkart-India",
-            "Amazon", 
-            "Amaz0n", 
-            "Google LLC", 
+            "Amazon",
+            "Amaz0n",
             "Google LLC",
-            "Meta Inc.", 
-            "Meta Inc"
+            "Google LLC",
+            "Meta Inc.",
+            "Meta Inc",
         ]
         clean, dupes = dedupe(data, threshold=80)
         self.assertEqual(len(clean), 4)
@@ -135,7 +138,10 @@ class TestDedupe(unittest.TestCase):
         self.assertTrue("Flipkart-India" in dupes.get("Flipkart India", []))
         self.assertTrue("Amaz0n" in dupes.get("Amazon", []))
         self.assertTrue("Google LLC" in dupes.get("Google LLC", []))
-        self.assertTrue("Meta Inc" in dupes.get("Meta Inc.", []) or "Meta Inc." in dupes.get("Meta Inc", []))
+        self.assertTrue(
+            "Meta Inc" in dupes.get("Meta Inc.", [])
+            or "Meta Inc." in dupes.get("Meta Inc", [])
+        )
 
     def test_dedupe_exact_keep_first_false(self) -> None:
         """Test _dedupe_exact with keep_first=False."""
@@ -147,6 +153,49 @@ class TestDedupe(unittest.TestCase):
         self.assertTrue("very long string" in clean)
         self.assertEqual(dupes, {"short": ["short"]})
 
+    def test_different_similarity_algorithms(self) -> None:
+        """Test deduplication with different similarity algorithms."""
+        # Test data with names that have spelling variations
+        data = ["Catherine", "Katherine", "Kathryn", "Robert", "Roberto"]
+
+        # Test with default Levenshtein algorithm
+        clean_lev, dupes_lev = dedupe(data, threshold=80)
+
+        # Test with Jaro-Winkler algorithm
+        clean_jw, dupes_jw = dedupe(
+            data, threshold=85, similarity_algorithm=SimilarityAlgorithm.JARO_WINKLER
+        )
+
+        # Test with Soundex algorithm
+        clean_soundex, dupes_soundex = dedupe(
+            data, threshold=85, similarity_algorithm=SimilarityAlgorithm.SOUNDEX
+        )
+
+        # Different algorithms should produce different results
+        # We don't assert specific results as they depend on the algorithm
+        # implementation
+        # Just verify that the function runs without errors with different algorithms
+        self.assertIsInstance(clean_lev, list)
+        self.assertIsInstance(dupes_lev, dict)
+        self.assertIsInstance(clean_jw, list)
+        self.assertIsInstance(dupes_jw, dict)
+        self.assertIsInstance(clean_soundex, list)
+        self.assertIsInstance(dupes_soundex, dict)
+
+    def test_parallel_with_different_algorithms(self) -> None:
+        """Test parallel deduplication with different similarity algorithms."""
+        # Create a smaller dataset that still triggers parallel processing
+        # but doesn't take too long to process
+        data = ["Item " + str(i) for i in range(200)]  # Reduced from 2000
+        data.extend(["Item " + str(i) + "a" for i in range(50)])  # Reduced from 500
+
+        # Test with different algorithms
+        for algorithm in SimilarityAlgorithm:
+            clean, dupes = dedupe(data, threshold=85, similarity_algorithm=algorithm)
+            # Just verify that the function runs without errors
+            self.assertIsInstance(clean, list)
+            self.assertIsInstance(dupes, dict)
+
 
 if __name__ == "__main__":
-    unittest.main() 
+    unittest.main()
